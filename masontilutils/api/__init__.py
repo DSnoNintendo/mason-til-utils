@@ -1,2 +1,2 @@
-from perplexity import *
+from masontilutils.api.perplexity import *
 
