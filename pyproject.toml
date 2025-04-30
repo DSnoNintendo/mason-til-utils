@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "mason-til-utils"
+version = "1.0.0"
+description = "utilities for development of applications for Mason Tilman & Associates"
+authors = ["Daryl Stronge"]
+readme = "README.md"
+packages = [{include = "masontilutils"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+sqlalchemy = ">=2.0.40,<3.0.0"
+pandas = ">=2.2.3,<3.0.0"
+urllib3 = ">=2.4.0,<3.0.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
