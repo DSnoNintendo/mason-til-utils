@@ -6,9 +6,9 @@ from requests.adapters import HTTPAdapter
 import requests
 from urllib3 import Retry
 
-from enums import APIResponse
-from queries import CODE_OUTPUT_SYSTEM_MESSAGE, EMAIL_OUTPUT_SYSTEM_MESSAGE, NAICS_CODE_QUERY, PERPLEXITY_EMAIL_QUERY, PERPLEXITY_EMAIL_QUERY_WITH_CONTACT
-from utils import create_query
+from masontilutils.api.enums import APIResponse
+from masontilutils.api.queries import CODE_OUTPUT_SYSTEM_MESSAGE, EMAIL_OUTPUT_SYSTEM_MESSAGE, NAICS_CODE_QUERY, PERPLEXITY_EMAIL_QUERY, PERPLEXITY_EMAIL_QUERY_WITH_CONTACT
+from masontilutils.utils import create_query
 
 class ThreadedPerplexitySonarAPI:
     _session_lock = threading.Lock()
