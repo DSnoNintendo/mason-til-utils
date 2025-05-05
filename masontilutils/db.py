@@ -195,3 +195,7 @@ class DBDaemon:
 
     def execute_query(self, entry):
         self.db_manager.execute_query(entry)
+        
+    def wait_for_queries(self):
+        while len(self.shared_data["queries"]) > 0:
+            time.sleep(0.2)
