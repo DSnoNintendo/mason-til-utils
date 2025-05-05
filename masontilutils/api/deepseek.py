@@ -103,19 +103,22 @@ class DeepseekNAICSCodeAPI(ThreadedDeepseekR1API):
 
         system_role = {"role": "system", "content": NAICS_CODE_OUTPUT_MESSAGE}
 
-        if description:
-            query = NAICS_CODE_QUERY_DESCRIPTION.format(
-                description=description
-            )
-        else:
+        if contract:
             query = NAICS_CODE_QUERY_CONTRACT.format(
                 description=description,
                 contract=contract
             )
+        else:
+            query = NAICS_CODE_QUERY_DESCRIPTION.format(
+                description=description
+            )
 
-        messages = [system_role, {"role": "user", "content": query}]
-
-        response = self.execute_query(query=query)
+        response = super().execute_query(
+            messages=[
+                system_role,
+                {"role": "user", "content": query}
+            ]
+        )
 
         if "error" not in response:
             answer = response["choices"][0]["message"]["content"]
