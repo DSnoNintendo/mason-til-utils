@@ -186,7 +186,7 @@ class PerplexitySonarEmailAPI(ThreadedPerplexitySonarAPI):
 
         if "error" not in response:
             if response_type == APIResponse.FOUND:
-                print(f"Found email for {contact}, {answer}")
+                print(f"Found email for {company_name}, {answer}")
                 return self.build_response(response_type=response_type, results=self.extract_emails(answer))
             else:
                 return self.build_response(response_type=response_type, results=None)
