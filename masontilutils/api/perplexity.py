@@ -6,9 +6,10 @@ from requests.adapters import HTTPAdapter
 import requests
 from urllib3 import Retry
 
-from enums import APIResponse
-from queries import CODE_OUTPUT_SYSTEM_MESSAGE, EMAIL_OUTPUT_SYSTEM_MESSAGE, NAICS_CODE_QUERY, PERPLEXITY_EMAIL_QUERY, PERPLEXITY_EMAIL_QUERY_WITH_CONTACT
-from utils import create_query
+from masontilutils.api.enums import APIResponse
+from masontilutils.api.queries import CODE_OUTPUT_SYSTEM_MESSAGE, EMAIL_OUTPUT_SYSTEM_MESSAGE, NAICS_CODE_QUERY, \
+    PERPLEXITY_EMAIL_QUERY, PERPLEXITY_EMAIL_QUERY_WITH_CONTACT, DESCRIPTION_QUERY, DESCRIPTION_OUTPUT_SYSTEM_MESSAGE
+from masontilutils.utils import create_query
 
 class ThreadedPerplexitySonarAPI:
     _session_lock = threading.Lock()
@@ -192,4 +193,33 @@ class PerplexitySonarEmailAPI(ThreadedPerplexitySonarAPI):
         else:
             print(f"Error: {response['error']}")
             return self.build_response(response_type=APIResponse.ERROR, results=None)
+
+class PerplexitySonarBusinessDescAPI(ThreadedPerplexitySonarAPI):
+    def __init__(self, api_key: str):
+        super().__init__(api_key)
+
+    def call(self,
+             company_name: str,
+             city: str,
+             state: str,
+        ) -> str | None:
+
+        system_role = {"role": "system", "content": DESCRIPTION_OUTPUT_SYSTEM_MESSAGE}
+
+        query = DESCRIPTION_QUERY.format(
+            company_name=company_name,
+            city=city,
+            state=state
+        )
+
+        response = super().execute_query(
+            messages=[system_role, {"role": "user", "content": query}]
+        )
+
+        if "error" not in response:
+            answer = response["choices"][0]["message"]["content"]
+            return answer
+        else:
+            print(f"Error: {response['error']}")
+            return None
 

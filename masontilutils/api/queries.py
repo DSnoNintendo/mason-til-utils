@@ -47,3 +47,30 @@ MARK_EMAIL_FOUND_QUERY = (
     "WHERE {id_column_name} = {id} ;"
 )
 
+DESCRIPTION_OUTPUT_SYSTEM_MESSAGE = (
+    "Rules:"
+    "1. Return either a description or None. Do not include extra context "
+    "2. Do not make guesses "
+    "3. Only return None if all options are exhausted. "
+)
+
+DESCRIPTION_QUERY = (
+    "Create a maximum 25 description for the following business "
+    "business name: {company_name}, "
+    "location: {city}, {state}."
+)
+
+NAICS_CODE_QUERY_DESCRIPTION = (
+    "Based on this company's description, assign it a NAICS code: {description}"
+)
+
+NAICS_CODE_QUERY_CONTRACT = (
+    "Based on this company's description and government contract title, assign it a NAICS code \n"
+    "description: {description} \n "
+    "Contract Title: {contract} \n "
+)
+
+NAICS_CODE_OUTPUT_MESSAGE = (
+    "Rules: "
+    "1. Return either ONLY the requested NAICS code or None. Do not include extra context. "
+    "2. Use the provided description to inform your answer. ")
