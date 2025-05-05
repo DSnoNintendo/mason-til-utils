@@ -10,11 +10,11 @@ class ThreadedChatGPTAPI:
 
     def __init__(self, api_key: str):
         """
-        Initialize the Deepseek R1 API client
-        :param api_key: Your Deepseek API key
+        Initialize the ChatGPT API client
+        :param api_key: Your ChatGPT API key
         """
         self.api_key = api_key
-        self.base_url = "https://api.deepseek.com/v1/chat/completions"
+        self.base_url = "https://api.openai.com/v1/chat/completions"
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
@@ -44,7 +44,7 @@ class ThreadedChatGPTAPI:
     def execute_query(
             self,
             query: str = None,
-            model: str = "deepseek-reasoner",
+            model: str = "gpt-4.1",
             max_tokens: Optional[int] = 100,
             **additional_args
     ) -> Dict[str, Any]:
@@ -52,7 +52,7 @@ class ThreadedChatGPTAPI:
         Execute a query against the Deepseek R1 API
 
         :param query: User query string
-        :param model: Model to use (default: deepseek-reasoner)
+        :param model: Model to use (default: gpt-4.1)
         :param max_tokens: Maximum response tokens
         :param temperature: Temperature parameter (0.0-1.0)
         :param additional_args: Additional API parameters
