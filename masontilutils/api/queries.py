@@ -48,14 +48,14 @@ MARK_EMAIL_FOUND_QUERY = (
 )
 
 DESCRIPTION_OUTPUT_SYSTEM_MESSAGE = (
-    "Rules:"
-    "1. Return either a description or None. Do not include extra context "
-    "2. Do not make guesses "
-    "3. Only return None if all options are exhausted. "
+    "You are an AI assistant that helps find information about businesses based on records of their past work, company websites, and other sources. "
+    "You will be given a company name, city, and state. "
+    "You will then return a detailed description of the work the business does. "
+    "The description should be no more than 50 words. "
+    "If no description is found, return None. "
 )
 
 DESCRIPTION_QUERY = (
-    "Create a maximum 25 description for the following business "
     "business name: {company_name}, "
     "location: {city}, {state}."
 )
@@ -71,6 +71,23 @@ NAICS_CODE_QUERY_CONTRACT = (
 )
 
 NAICS_CODE_OUTPUT_MESSAGE = (
-    "Rules: "
-    "1. Return either ONLY the requested NAICS code or None. Do not include extra context. "
-    "2. Use the provided description to inform your answer. ")
+    "Return either ONLY the requested NAICS code or None. Do not include extra context. "
+    "Return up to 3 codes in JSON format. \n"
+    "Example: \n"
+    "{"
+    "NAICS_CODES: [code1, code2, code3]"
+    "}\n"
+    "If no codes are found, return None."
+)
+
+EXECUTIVE_OUTPUT_SYSTEM_MESSAGE = """You are an AI assistant that helps find information about business executives.
+When responding, format the executive's information as follows:
+Name: [Full Name]
+Title: [Executive Title]
+
+If you cannot find an executive, respond with 'No executive information found.'
+Do not include any additional text or explanation."""
+
+EXECUTIVE_QUERY = """Find the name and title of an executive or administrator at {company_name} in {city}, {state}.
+Focus on finding the CEO, President, Owner, or highest-ranking executive.
+If you cannot find a specific executive, respond with 'No executive information found.'"""

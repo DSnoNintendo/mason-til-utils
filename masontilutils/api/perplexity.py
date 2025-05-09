@@ -7,8 +7,11 @@ import requests
 from urllib3 import Retry
 
 from masontilutils.api.enums import APIResponse
-from masontilutils.api.queries import CODE_OUTPUT_SYSTEM_MESSAGE, EMAIL_OUTPUT_SYSTEM_MESSAGE, NAICS_CODE_QUERY, \
-    PERPLEXITY_EMAIL_QUERY, PERPLEXITY_EMAIL_QUERY_WITH_CONTACT, DESCRIPTION_QUERY, DESCRIPTION_OUTPUT_SYSTEM_MESSAGE
+from masontilutils.api.queries import (
+    CODE_OUTPUT_SYSTEM_MESSAGE, EMAIL_OUTPUT_SYSTEM_MESSAGE, NAICS_CODE_QUERY,
+    PERPLEXITY_EMAIL_QUERY, PERPLEXITY_EMAIL_QUERY_WITH_CONTACT, DESCRIPTION_QUERY,
+    DESCRIPTION_OUTPUT_SYSTEM_MESSAGE, EXECUTIVE_OUTPUT_SYSTEM_MESSAGE, EXECUTIVE_QUERY
+)
 from masontilutils.utils import create_query
 
 class ThreadedPerplexitySonarAPI:
@@ -52,7 +55,7 @@ class ThreadedPerplexitySonarAPI:
             self,
             query: str = None,
             model: str = "sonar-pro",
-            max_tokens: Optional[int] = 100,
+            max_tokens: Optional[int] = 1000,
             temperature: float = 0.1,
             **additional_args
     ) -> Dict[str, Any]:
@@ -76,7 +79,7 @@ class ThreadedPerplexitySonarAPI:
                 self.base_url,
                 headers=self.headers,
                 json=payload,
-                timeout=30
+                timeout=500
             )
             response.raise_for_status()
 
@@ -174,9 +177,10 @@ class PerplexitySonarEmailAPI(ThreadedPerplexitySonarAPI):
                                  company_name=company_name, city=city, state=state)
 
         response = super().execute_query(
+            model="sonar-deep-research",
             messages=[
                 system_role,
-                        {"role": "user", "content": query}
+                {"role": "user", "content": query}
             ]
         )
 
@@ -194,7 +198,7 @@ class PerplexitySonarEmailAPI(ThreadedPerplexitySonarAPI):
             print(f"Error: {response['error']}")
             return self.build_response(response_type=APIResponse.ERROR, results=None)
 
-class PerplexitySonarBusinessDescAPI(ThreadedPerplexitySonarAPI):
+class PerplexityBusinessDescAPI(ThreadedPerplexitySonarAPI):
     def __init__(self, api_key: str):
         super().__init__(api_key)
 
@@ -213,12 +217,108 @@ class PerplexitySonarBusinessDescAPI(ThreadedPerplexitySonarAPI):
         )
 
         response = super().execute_query(
+            model="sonar-deep-research",
             messages=[system_role, {"role": "user", "content": query}]
         )
 
         if "error" not in response:
             answer = response["choices"][0]["message"]["content"]
             return answer
+        else:
+            print(f"Error: {response['error']}")
+            return None
+
+class PerplexitySonarExecutiveAPI(ThreadedPerplexitySonarAPI):
+    def __init__(self, api_key: str):
+        super().__init__(api_key)
+
+    def extract_executive(self, text: str) -> dict:
+        """Extract executive information from the response"""
+        # Look for patterns like "Name: John Smith" or "Title: CEO"
+        name_match = re.search(r"Name:\s*([^\n]+)", text, re.IGNORECASE)
+        title_match = re.search(r"Title:\s*([^\n]+)", text, re.IGNORECASE)
+        
+        if name_match and title_match:
+            return {
+                "name": name_match.group(1).strip(),
+                "title": title_match.group(1).strip()
+            }
+        return None
+
+    def call(self,
+             company_name: str,
+             city: str,
+             state: str,
+        ) -> dict:
+
+        system_role = {"role": "system", "content": EXECUTIVE_OUTPUT_SYSTEM_MESSAGE}
+
+        query = EXECUTIVE_QUERY.format(
+            company_name=company_name,
+            city=city,
+            state=state
+        )
+
+        response = super().execute_query(
+            model="sonar-deep-research",
+            messages=[
+                system_role,
+                {"role": "user", "content": query}
+            ]
+        )
+
+        if "error" not in response:
+            answer = response["choices"][0]["message"]["content"]
+            if "No executive information found" in answer:
+                return None
+            return self.extract_executive(answer)
+        else:
+            print(f"Error: {response['error']}")
+            return None
+
+class PerplexityLinkedInAPI(ThreadedPerplexitySonarAPI):
+    def __init__(self, api_key: str):
+        super().__init__(api_key)
+
+    def extract_linkedin_url(self, text: str) -> str | None:
+        """Extract LinkedIn URL from the response"""
+        # Look for LinkedIn URL pattern
+        linkedin_pattern = r'https?://(?:www\.)?linkedin\.com/in/[a-zA-Z0-9-]+/?'
+        match = re.search(linkedin_pattern, text)
+        return match.group(0) if match else None
+
+    def call(self,
+             name: str,
+             company_name: str,
+             city: str,
+             state: str,
+        ) -> dict:
+        """
+        Find LinkedIn profile URL for a person
+        
+        Args:
+            name: Full name of the person
+            company_name: Name of their company
+            city: City where the company is located
+            state: State where the company is located
+            
+        Returns:
+            dict: Contains 'url' if found, None if not found
+        """
+        query = f"""Find a picture or social media profile for {name} who has worked in {city}, {state}. Linkedin is preferred.
+        Name must be present, but fuzzy matching is allowed. Include all sources in your response."""
+
+        response = super().execute_query(
+            model="sonar-deep-research",
+            messages=[{"role": "user", "content": query}],
+            temperature=0.1  # Low temperature for more precise results
+        )
+
+        if "error" not in response:
+            answer = response["choices"][0]["message"]["content"]
+            print(answer)
+            linkedin_url = self.extract_linkedin_url(answer)
+            return {"url": linkedin_url} if linkedin_url else None
         else:
             print(f"Error: {response['error']}")
             return None
