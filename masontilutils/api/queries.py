@@ -75,9 +75,10 @@ NAICS_CODE_OUTPUT_MESSAGE = (
     "Return up to 3 codes in JSON format. \n"
     "Example: \n"
     "{"
-    "NAICS_CODES: [code1, code2, code3]"
+    "1: code1 (or None if no code is found), "
+    "2: code2 (or None if no code is found), "
+    "3: code3 (or None if no code is found)"
     "}\n"
-    "If no codes are found, return None."
 )
 
 EXECUTIVE_OUTPUT_SYSTEM_MESSAGE = """You are an AI assistant that helps find information about business executives.

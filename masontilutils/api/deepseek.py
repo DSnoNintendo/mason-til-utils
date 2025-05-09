@@ -1,3 +1,4 @@
+import json
 import threading
 import requests
 from requests.adapters import HTTPAdapter
@@ -98,20 +99,13 @@ class DeepseekNAICSCodeAPI(ThreadedDeepseekR1API):
 
     def call(self,
              description: str,
-             contract: str | None = None,
-             ) -> str | None:
+             ) -> dict | None:
 
         system_role = {"role": "system", "content": NAICS_CODE_OUTPUT_MESSAGE}
 
-        if contract:
-            query = NAICS_CODE_QUERY_CONTRACT.format(
-                description=description,
-                contract=contract
-            )
-        else:
-            query = NAICS_CODE_QUERY_DESCRIPTION.format(
-                description=description
-            )
+        query = NAICS_CODE_QUERY_DESCRIPTION.format(
+            description=description
+        )
 
         response = super().execute_query(
             messages=[
@@ -122,7 +116,7 @@ class DeepseekNAICSCodeAPI(ThreadedDeepseekR1API):
 
         if "error" not in response:
             answer = response["choices"][0]["message"]["content"]
-            return answer
+            return json.loads(answer)
         else:
             print(f"Error: {response['error']}")
             return None
