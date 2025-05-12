@@ -228,7 +228,7 @@ class PerplexityBusinessDescAPI(ThreadedPerplexitySonarAPI):
             print(f"Error: {response['error']}")
             return None
 
-class PerplexitySonarExecutiveAPI(ThreadedPerplexitySonarAPI):
+class PerplexityExecutiveAPI(ThreadedPerplexitySonarAPI):
     def __init__(self, api_key: str):
         super().__init__(api_key)
 
@@ -292,24 +292,11 @@ class PerplexityLinkedInAPI(ThreadedPerplexitySonarAPI):
              company_name: str,
              city: str,
              state: str,
-        ) -> dict:
-        """
-        Find LinkedIn profile URL for a person
-        
-        Args:
-            name: Full name of the person
-            company_name: Name of their company
-            city: City where the company is located
-            state: State where the company is located
-            
-        Returns:
-            dict: Contains 'url' if found, None if not found
-        """
-        query = f"""Find a picture or social media profile for {name} who has worked in {city}, {state}. Linkedin is preferred.
-        Name must be present, but fuzzy matching is allowed. Include all sources in your response."""
+        ) -> str | None:
+        query = f"""Find a linkedin profile for {name} of {company_name}. Return the url only. If none found return None."""
 
         response = super().execute_query(
-            model="sonar-deep-research",
+            model="sonar-pro",
             messages=[{"role": "user", "content": query}],
             temperature=0.1  # Low temperature for more precise results
         )
@@ -318,7 +305,7 @@ class PerplexityLinkedInAPI(ThreadedPerplexitySonarAPI):
             answer = response["choices"][0]["message"]["content"]
             print(answer)
             linkedin_url = self.extract_linkedin_url(answer)
-            return {"url": linkedin_url} if linkedin_url else None
+            return linkedin_url if linkedin_url else None
         else:
             print(f"Error: {response['error']}")
             return None

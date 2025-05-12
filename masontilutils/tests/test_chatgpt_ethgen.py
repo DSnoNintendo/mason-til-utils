@@ -1,7 +1,7 @@
 import os
 import unittest
 from pathlib import Path
-from masontilutils.api.chatgpt import ChatGPTEthGenAPI, EthnicityRegion
+from masontilutils.api.chatgpt import ChatGPTEthGenAPI, Region, Ethnicity, Sex
 
 class TestChatGPTEthGenAPI(unittest.TestCase):
     @classmethod
@@ -21,15 +21,16 @@ class TestChatGPTEthGenAPI(unittest.TestCase):
 
         # Define expected image-region mappings
         cls.expected_mappings = {
-            '1_rahul sihag.jpg': EthnicityRegion.ASIA,
-            '2_ryan pritchard.jpg': EthnicityRegion.EUROPE,
-            '3_michelle lee.jpg': EthnicityRegion.ASIA,
-            '4_timothy walker.jpg': EthnicityRegion.AFRICA
+            '1_rahul sihag.jpg': {"ethnicity": Ethnicity.ASIA.value, "sex": Sex.MALE.value},
+            '2_ryan pritchard.jpg': {"ethnicity": Ethnicity.EUROPE.value, "sex": Sex.MALE.value},
+            '3_michelle lee.jpg': {"ethnicity": Ethnicity.ASIA.value, "sex": Sex.FEMALE.value},
+            '4_timothy walker.jpg': {"ethnicity": Ethnicity.AFRICA.value, "sex": Sex.MALE.value}
         }
+            
 
-    def test_image_analysis(self):
+    def test_image_analysis_with_file(self):
         """Test that images are correctly analyzed and match expected regions"""
-        for image_name, expected_region in self.expected_mappings.items():
+        for image_name, expected_res in self.expected_mappings.items():
 
             print(f"========== Testing {image_name} ==========")
             image_path = self.test_images_dir / image_name
@@ -39,15 +40,13 @@ class TestChatGPTEthGenAPI(unittest.TestCase):
                 self.skipTest(f"Test image {image_name} not found")
             
             # Get prediction
-            result = self.api.call(str(image_path))
+            result = self.api.call(image_path=str(image_path))
             print(f"Result for {image_name}: {result}")
 
             # Assert result matches expected region
             self.assertIsNotNone(result, f"Failed to get result for {image_name}")
             
-            if result != expected_region:
-                print(f"Expected {expected_region.value} for {image_name}, got {result.value if result else None}")
-                print("Getting result using name and image")
+            if result != expected_res:
                 name = image_name.split('_')[1]
                 result = self.api.call(str(image_path), name)
 
@@ -55,11 +54,17 @@ class TestChatGPTEthGenAPI(unittest.TestCase):
                 print(f"Result for {image_name} with name {name}: {result}")
                 self.assertEqual(
                 result, 
-                expected_region,
-                f"Expected {expected_region.value} for {image_name}, got {result.value if result else None}"
+                expected_res,
                 )
 
             print(f"\n\n")
+
+    def test_image_analysis_with_url(self):
+        url = "https://media.licdn.com/dms/image/v2/C4E03AQGOZgLtycIRdg/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1517726975275?e=1752710400&v=beta&t=nZo6W9gyIb7j_P11Zy6Z_AvLWeLLSmtHdh7VwLW5S3Q"
+        result = self.api.call(url, parse_url=True)
+        print(f"Result for {url}: {result}")
+
+        self.assertEqual(result, {"ethnicity": Ethnicity.EUROPE.value, "sex": Sex.FEMALE.value})
 
                 
 
