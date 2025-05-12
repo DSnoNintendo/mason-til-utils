@@ -80,7 +80,7 @@ class ThreadedDeepseekR1API:
                 self.base_url,
                 headers=self.headers,
                 json=payload,
-                timeout=30
+                timeout=300
             )
             response.raise_for_status()
 
@@ -96,6 +96,21 @@ class ThreadedDeepseekR1API:
 class DeepseekNAICSCodeAPI(ThreadedDeepseekR1API):
     def __init__(self, api_key: str):
         super().__init__(api_key=api_key)
+
+    def format_response(self, response: str) -> dict | None:
+        json_string = response.strip('```json').strip('```').strip()
+        json_dict = json.loads(json_string)
+        keys = list(json_dict.keys())
+        for key in keys:
+            int_key = int(key)
+            json_dict[int_key] = json_dict[key]
+            del json_dict[key]
+            try:
+                json_dict[int_key] = int(json_dict[int_key])
+                
+            except (ValueError, TypeError):
+                json_dict[int_key] = None
+        return json_dict
 
     def call(self,
              description: str,
@@ -116,7 +131,7 @@ class DeepseekNAICSCodeAPI(ThreadedDeepseekR1API):
 
         if "error" not in response:
             answer = response["choices"][0]["message"]["content"]
-            return json.loads(answer)
+            return self.format_response(answer)
         else:
             print(f"Error: {response['error']}")
             return None

@@ -12,7 +12,7 @@ from masontilutils.api.queries import (
     PERPLEXITY_EMAIL_QUERY, PERPLEXITY_EMAIL_QUERY_WITH_CONTACT, DESCRIPTION_QUERY,
     DESCRIPTION_OUTPUT_SYSTEM_MESSAGE, EXECUTIVE_OUTPUT_SYSTEM_MESSAGE, EXECUTIVE_QUERY
 )
-from masontilutils.utils import create_query
+from masontilutils.utils import clean_deep_research_text, create_query
 
 class ThreadedPerplexitySonarAPI:
     _session_lock = threading.Lock()
@@ -223,7 +223,7 @@ class PerplexityBusinessDescAPI(ThreadedPerplexitySonarAPI):
 
         if "error" not in response:
             answer = response["choices"][0]["message"]["content"]
-            return answer
+            return clean_deep_research_text(answer)
         else:
             print(f"Error: {response['error']}")
             return None
