@@ -51,13 +51,14 @@ DESCRIPTION_OUTPUT_SYSTEM_MESSAGE = (
     "You are an AI assistant that helps find information about businesses based on records of their past work, company websites, and other sources. "
     "You will be given a company name, city, and state. "
     "You will then return a detailed description of the work the business does. Business history or employee size isn't important. Just the work they do."
-    "The description should be no more than 50 words. "
-    "If no description is found, return None. "
+    "The description should be no more than 100 words. "
+    "Do not make assumptions. "
 )
 
 DESCRIPTION_QUERY = (
     "business name: {company_name}, "
     "location: {city}, {state}."
+    "Output description only. It should be no more than 100 words. If you cannot find the business, return None."
 )
 
 NAICS_CODE_QUERY_DESCRIPTION = (

@@ -223,6 +223,8 @@ class PerplexityBusinessDescAPI(ThreadedPerplexitySonarAPI):
 
         if "error" not in response:
             answer = response["choices"][0]["message"]["content"]
+            if "None" in answer:
+                return None
             return clean_deep_research_text(answer)
         else:
             print(f"Error: {response['error']}")
