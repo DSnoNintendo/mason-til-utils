@@ -277,38 +277,3 @@ class PerplexityExecutiveAPI(ThreadedPerplexitySonarAPI):
         else:
             print(f"Error: {response['error']}")
             return None
-
-class PerplexityLinkedInAPI(ThreadedPerplexitySonarAPI):
-    def __init__(self, api_key: str):
-        super().__init__(api_key)
-
-    def extract_linkedin_url(self, text: str) -> str | None:
-        """Extract LinkedIn URL from the response"""
-        # Look for LinkedIn URL pattern
-        linkedin_pattern = r'https?://(?:www\.)?linkedin\.com/in/[a-zA-Z0-9-]+/?'
-        match = re.search(linkedin_pattern, text)
-        return match.group(0) if match else None
-
-    def call(self,
-             name: str,
-             company_name: str,
-             city: str,
-             state: str,
-        ) -> str | None:
-        query = f"""Find a linkedin profile for {name} of {company_name}. Return the url only. If none found return None."""
-
-        response = super().execute_query(
-            model="sonar-pro",
-            messages=[{"role": "user", "content": query}],
-            temperature=0.1  # Low temperature for more precise results
-        )
-
-        if "error" not in response:
-            answer = response["choices"][0]["message"]["content"]
-            print(answer)
-            linkedin_url = self.extract_linkedin_url(answer)
-            return linkedin_url if linkedin_url else None
-        else:
-            print(f"Error: {response['error']}")
-            return None
-
