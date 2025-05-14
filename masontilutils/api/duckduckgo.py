@@ -136,9 +136,6 @@ class DuckDuckGoAPI:
                 full_url,
             )
 
-            
-
-            
             # Parse the HTML response
             soup = BeautifulSoup(payload.text, 'html.parser')
             print(payload.text)
@@ -207,7 +204,7 @@ class DuckDuckGoLinkedInAPI():
         :return: List of search results
         """
 
-        query = f'"{name}" "{company_name}" site:linkedin.com'
+        query = f'{name} {company_name} site:linkedin.com'
 
         results = self.api.search(query)
 
