@@ -2,24 +2,34 @@ from typing import Dict, Any, List
 from urllib.parse import urlencode
 from bs4 import BeautifulSoup
 import primp
-from time import sleep
+from time import sleep, time
 import undetected_chromedriver as uc
 from fuzzywuzzy import fuzz
+import random
 
 class DDGSearch:
-    def __init__(self):
+    def __init__(self, headless: bool = True):
         try:
             self.driver = uc.Chrome(
-                headless=True,
+                headless=headless,
                 use_subprocess=False
             )
             self.driver.get("https://www.duckduckgo.com")
+            self.last_request_time = 0
         except Exception as e:
             raise RuntimeError(f"Failed to initialize WebDriver: {str(e)}")
         
     def _get(self, url: str):
+        current_time = time()
+        time_since_last_request = current_time - self.last_request_time
+        
+        if time_since_last_request < 10:  # If less than minimum wait time has passed
+            sleep_time = random.uniform(10, 30) - time_since_last_request
+            if sleep_time > 0:
+                sleep(sleep_time)
+        
         self.driver.get(url)
-        sleep(1)
+        self.last_request_time = time()
 
     def _get_html(self) -> str:
         return self.driver.page_source
@@ -130,8 +140,8 @@ class DuckDuckGoAPI:
 
             
             # Parse the HTML response
-            soup = BeautifulSoup(response.text, 'html.parser')
-            print(response.text)
+            soup = BeautifulSoup(payload.text, 'html.parser')
+            print(payload.text)
             results = []
             
             # Find all article elements that have data-* attributes with value "result"
