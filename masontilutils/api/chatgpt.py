@@ -206,6 +206,7 @@ class ChatGPTEthGenAPI(ThreadedChatGPTAPI):
                 }
             ]
 
+            
             # Execute the query with vision-specific parameters
             response = self.execute_query(
                 model="gpt-4.1",
@@ -222,7 +223,7 @@ class ChatGPTEthGenAPI(ThreadedChatGPTAPI):
             # Extract and validate the response
             answer = response["choices"][0]["message"]["content"].strip()
             answer = clean_deep_research_text(answer)
-            json_string = answer.strip('```json').strip('```').strip()
+            json_string = answer.split('```json')[1].split('```')[0].strip()
 
             api_res = json.loads(json_string)
             res = self._build_response(api_res)
@@ -230,6 +231,5 @@ class ChatGPTEthGenAPI(ThreadedChatGPTAPI):
             
         except Exception as e:
             print(f"Error processing image: {str(e)}")
-            e.print_exc()
             return None
 
