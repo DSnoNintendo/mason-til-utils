@@ -23,8 +23,8 @@ class DDGSearch:
         current_time = time()
         time_since_last_request = current_time - self.last_request_time
         
-        if time_since_last_request < 10:  # If less than minimum wait time has passed
-            sleep_time = random.uniform(10, 30) - time_since_last_request
+        if time_since_last_request < 5:  # If less than minimum wait time has passed
+            sleep_time = random.uniform(1, 5) - time_since_last_request
             if sleep_time > 0:
                 sleep(sleep_time)
         
@@ -204,13 +204,18 @@ class DuckDuckGoLinkedInAPI():
         :return: List of search results
         """
 
-        query = f'{name} {company_name} site:linkedin.com'
+        queries = [
+            f'"{name}" "{company_name}" site:linkedin.com',
+            f'{name} {company_name} site:linkedin.com',
+        ]
 
-        results = self.api.search(query)
 
-        for result in results:
-            if self._result_valid(result, name, company_name):
-                return result['url']
+        for query in queries:
+            results = self.api.search(query)
+
+            for result in results:
+                if self._result_valid(result, name, company_name):
+                    return result['url']
 
         return None
 
