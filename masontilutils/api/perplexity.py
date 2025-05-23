@@ -1,7 +1,8 @@
+import json
 import re
 import threading
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from requests.adapters import HTTPAdapter
 
 import requests
@@ -9,7 +10,7 @@ from urllib3 import Retry
 
 from masontilutils.api.enums import APIResponse
 from masontilutils.api.queries import (
-    CODE_OUTPUT_SYSTEM_MESSAGE, EMAIL_OUTPUT_SYSTEM_MESSAGE, NAICS_CODE_QUERY,
+    CODE_OUTPUT_SYSTEM_MESSAGE, EMAIL_OUTPUT_SYSTEM_MESSAGE, NAICS_CODE_QUERY, PERPLEXITY_EMAIL_JSON_FORMAT,
     PERPLEXITY_EMAIL_QUERY, PERPLEXITY_EMAIL_QUERY_WITH_CONTACT, DESCRIPTION_QUERY,
     DESCRIPTION_OUTPUT_SYSTEM_MESSAGE, EXECUTIVE_OUTPUT_SYSTEM_MESSAGE, EXECUTIVE_QUERY
 )
@@ -163,7 +164,7 @@ class PerplexityNAICSCodeAPI(ThreadedPerplexitySonarAPI):
             return None
 
 
-class PerplexitySonarEmailAPI(ThreadedPerplexitySonarAPI):
+class PerplexityEmailAPI(ThreadedPerplexitySonarAPI):
     def __init__(self, api_key: str):
         super().__init__(api_key)
 
@@ -175,9 +176,15 @@ class PerplexitySonarEmailAPI(ThreadedPerplexitySonarAPI):
 
 
     def build_response(self, response_type, results) -> dict:
-        res = dict()
+        if results:
+            json_string = results.split('```json')[1].split('```')[0].strip()
+            print(json_string)
+            # json_string = clean_deep_research_text(json_string)
+            res = json.loads(json_string)
+        else:
+            res = dict()
+            
         res["response_type"] = response_type
-        res["results"] = results
 
         return res
 
@@ -208,10 +215,17 @@ class PerplexitySonarEmailAPI(ThreadedPerplexitySonarAPI):
 
         if contact:
             query = create_query(query=PERPLEXITY_EMAIL_QUERY_WITH_CONTACT, 
-                                 company_name=company_name, city=city, state=state, contact=contact)
+                                 company_name=company_name, 
+                                 city=city, 
+                                 state=state,
+                                 contact=contact,
+                                 FORMAT=PERPLEXITY_EMAIL_JSON_FORMAT)
         else:
             query = create_query(query=PERPLEXITY_EMAIL_QUERY, 
-                                 company_name=company_name, city=city, state=state)
+                                 company_name=company_name, 
+                                 city=city, 
+                                 state=state,
+                                 FORMAT=PERPLEXITY_EMAIL_JSON_FORMAT)
 
         response = super().execute_query(
             model="sonar-deep-research",
@@ -222,13 +236,11 @@ class PerplexitySonarEmailAPI(ThreadedPerplexitySonarAPI):
         )
 
         answer = response["choices"][0]["message"]["content"]
-
         response_type = self.get_response_type(answer)
 
         if "error" not in response:
             if response_type == APIResponse.FOUND:
-                print(f"Found email for {company_name}, {answer}")
-                return self.build_response(response_type=response_type, results=self.extract_emails(answer))
+                return self.build_response(response_type=response_type, results=answer)
             else:
                 return self.build_response(response_type=response_type, results=None)
         else:
@@ -271,7 +283,21 @@ class PerplexityExecutiveAPI(ThreadedPerplexitySonarAPI):
     def __init__(self, api_key: str):
         super().__init__(api_key)
 
-    def extract_executive(self, text: str) -> dict:
+    def build_response(self, results) -> List[dict]:
+        res = list()
+        if results:
+            json_string = results.split('```json')[1].split('```')[0].strip()
+            # Ensure the JSON string has proper string keys
+            json_string = re.sub(r'(\d+)\s*:', r'"\1":', json_string)
+            loaded_json = json.loads(json_string)
+            for key, value in loaded_json.items():
+                res.append(value)
+        else:
+            res = list()
+
+        return res
+
+    def extract_executive(self, text: str) -> List[dict] | None:
         """Extract executive information from the response"""
         # Look for patterns like "Name: John Smith" or "Title: CEO"
         name_match = re.search(r"Name:\s*([^\n]+)", text, re.IGNORECASE)
@@ -308,9 +334,10 @@ class PerplexityExecutiveAPI(ThreadedPerplexitySonarAPI):
 
         if "error" not in response:
             answer = response["choices"][0]["message"]["content"]
-            if "No executive information found" in answer:
+            if "None" in answer:
                 return None
-            return self.extract_executive(answer)
+            res =  self.build_response(results=answer)
+            return res
         else:
             print(f"Error: {response['error']}")
             return None

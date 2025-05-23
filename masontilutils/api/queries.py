@@ -18,22 +18,50 @@ EMAIL_OUTPUT_SYSTEM_MESSAGE = (
     "3. Only return None if all options are exhausted. "
     "4. Do not make guesses."
     "5. If an email address seems like personal information, it isn't."
+    "6. List all sources you used to find the email address."
 )
 
-PERPLEXITY_EMAIL_QUERY = (
-    "Find the email address most suitable for contacting an administrator for the "
-    "following business "
-    "business name: {company_name}, "
-    "location: {city}, {state}."
+PERPLEXITY_EMAIL_JSON_FORMAT = (
+    """
+    {{
+        'email@example.com' : {{
+            'contact': {{
+                'name': 'John Doe',
+                'title': 'CEO'
+            }},
+            'sources_for_email': [source_link, source_link, source_link],
+            'sources_for_contact': [source_link, source_link, source_link]
+        }},
+        ...
+    }}
+    If the email is not attributed to an executive, the contact field should be None.
+    """
 )
 
-PERPLEXITY_EMAIL_QUERY_WITH_CONTACT = (
-    "Find the email address most suitable for contacting the following admin of the "
-    "following business "
-    "admin name: {contact} "
-    "business name: {company_name}, "
-    "location: {city}, {state}."
-)
+PERPLEXITY_EMAIL_QUERY = """
+    Find the email address most suitable for contacting a president or executive of the 
+    following business. List the name of an executive or president if you can find one. 
+    'info@' or 'contact@' emails should be last priority. Sales and marketing emails should never be included.
+    If a found email is not attributed to the requested company, include it but find another email attributed to the company. 
+    business name: {company_name}, 
+    location: {city}, {state}.
+    Output your findings in JSON format. 
+    Example: \n",
+    {FORMAT}
+"""
+
+PERPLEXITY_EMAIL_QUERY_WITH_CONTACT = """
+    Find the email address most suitable for contacting the following admin of the 
+    following business. List the name of an executive or president if you can find one. 
+    'info@' or 'contact@' emails should be last priority. Sales and marketing emails should never be included.
+    If a found email is not attributed to the requested company, include it but find another email attributed to the company.
+    admin name: {contact} 
+    business name: {company_name}, 
+    location: {city}, {state}.
+    Output your findings in JSON format. 
+    Example: \n",
+    {FORMAT}
+"""
 
 MARK_EMAIL_CHECKED_QUERY = (
     "UPDATE {table_name} "
@@ -83,13 +111,30 @@ NAICS_CODE_OUTPUT_MESSAGE = (
 )
 
 EXECUTIVE_OUTPUT_SYSTEM_MESSAGE = """You are an AI assistant that helps find information about business executives.
-When responding, format the executive's information as follows:
-Name: [Full Name]
-Title: [Executive Title]
+When responding, format the executive information in a json string as follows:
+{
 
-If you cannot find an executive, respond with 'No executive information found.'
+    1 :
+        { 
+            "name": "...",
+            "role": "...",
+            "sources": ["link", "link"]
+            "email": [
+                "email1@example.com": {
+                    "contact": "...",
+                    "sources": ["link", "link"]
+                },
+                "email2@example.com": {
+                    "contact": "...",
+                    "sources": ["link", "link"]
+                }
+            ]
+        },
+    2 : ...
+}
+
+If you cannot find an executive, respond with 'None'
 Do not include any additional text or explanation."""
 
-EXECUTIVE_QUERY = """Find the name and title of an executive or administrator at {company_name} in {city}, {state}.
-Focus on finding the CEO, President, Owner, or highest-ranking executive.
-If you cannot find a specific executive, respond with 'No executive information found.'"""
+EXECUTIVE_QUERY = """Find the name, title, and email of an executive or administrator at {company_name} in {city}, {state}.
+Focus on finding the CEO, President, Owner, or highest-ranking executive.'"""
