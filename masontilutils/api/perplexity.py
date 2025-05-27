@@ -2,6 +2,7 @@ import json
 import re
 import threading
 import time
+import ast
 from typing import Any, Dict, List, Optional
 from requests.adapters import HTTPAdapter
 
@@ -180,7 +181,7 @@ class PerplexityEmailAPI(ThreadedPerplexitySonarAPI):
             json_string = results.split('```json')[1].split('```')[0].strip()
             print(json_string)
             # json_string = clean_deep_research_text(json_string)
-            res = json.loads(json_string)
+            res = ast.literal_eval(json_string)
         else:
             res = dict()
             
@@ -289,7 +290,7 @@ class PerplexityExecutiveAPI(ThreadedPerplexitySonarAPI):
             json_string = results.split('```json')[1].split('```')[0].strip()
             # Ensure the JSON string has proper string keys
             json_string = re.sub(r'(\d+)\s*:', r'"\1":', json_string)
-            loaded_json = json.loads(json_string)
+            loaded_json = ast.literal_eval(json_string)
             for key, value in loaded_json.items():
                 res.append(value)
         else:
