@@ -118,17 +118,18 @@ When responding, format the executive information in a json string as follows:
         { 
             "name": "...",
             "role": "...",
-            "sources": ["link", "link"]
-            "email": [
-                "email1@example.com": {
-                    "contact": "...",
-                    "sources": ["link", "link"]
-                },
-                "email2@example.com": {
-                    "contact": "...",
-                    "sources": ["link", "link"]
+            "sources": ["link", "link"],
+            "email": {
+                    "email1@example.com": {
+                        "contact": "...",
+                        "sources": ["link", "link"]
+                    },
+                    "email2@example.com": {
+                        "contact": "...",
+                        "sources": ["link", "link"]
+                    }
                 }
-            ]
+            ],
         },
     2 : ...
 }

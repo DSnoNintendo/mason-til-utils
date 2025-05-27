@@ -15,7 +15,7 @@ from masontilutils.api.queries import (
     PERPLEXITY_EMAIL_QUERY, PERPLEXITY_EMAIL_QUERY_WITH_CONTACT, DESCRIPTION_QUERY,
     DESCRIPTION_OUTPUT_SYSTEM_MESSAGE, EXECUTIVE_OUTPUT_SYSTEM_MESSAGE, EXECUTIVE_QUERY
 )
-from masontilutils.utils import clean_deep_research_text, create_query
+from masontilutils.utils import extract_json_substring, clean_deep_research_text, create_query
 
 class ThreadedPerplexitySonarAPI:
     _session_lock = threading.Lock()
@@ -178,8 +178,8 @@ class PerplexityEmailAPI(ThreadedPerplexitySonarAPI):
 
     def build_response(self, response_type, results) -> dict:
         if results:
-            json_string = results.split('```json')[1].split('```')[0].strip()
-            print(json_string)
+            json_string = clean_deep_research_text(results)
+            json_string = extract_json_substring(json_string)
             # json_string = clean_deep_research_text(json_string)
             res = ast.literal_eval(json_string)
         else:
@@ -287,10 +287,12 @@ class PerplexityExecutiveAPI(ThreadedPerplexitySonarAPI):
     def build_response(self, results) -> List[dict]:
         res = list()
         if results:
-            json_string = results.split('```json')[1].split('```')[0].strip()
+            json_string = clean_deep_research_text(results)
+            json_string = extract_json_substring(json_string)
             # Ensure the JSON string has proper string keys
             json_string = re.sub(r'(\d+)\s*:', r'"\1":', json_string)
             loaded_json = ast.literal_eval(json_string)
+            print(loaded_json)
             for key, value in loaded_json.items():
                 res.append(value)
         else:
