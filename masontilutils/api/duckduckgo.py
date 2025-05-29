@@ -190,6 +190,21 @@ class DuckDuckGoLinkedInAPI():
             return False
         
         return True
+    
+    def clean_company_name(self, company_name: str) -> str:
+        company_name = company_name.lower()
+        company_name = company_name.replace("llc", "")
+        company_name = company_name.replace("inc", "")
+        company_name = company_name.replace("corp", "")
+        company_name = company_name.replace("corporation", "")
+        company_name = company_name.replace("llp", "")
+        company_name = company_name.replace("co", "")
+        company_name = company_name.replace("company", "")
+        company_name = company_name.replace("services", "")
+        company_name = company_name.replace("group", "")
+        company_name = company_name.replace("limited", "")
+
+        return company_name
 
     def call(
             self,
@@ -203,6 +218,7 @@ class DuckDuckGoLinkedInAPI():
         :param company_name: Name of the company
         :return: List of search results
         """
+        company_name = self.clean_company_name(company_name)
 
         queries = [
             f'"{name}" "{company_name}" site:linkedin.com',
