@@ -184,9 +184,9 @@ class DuckDuckGoLinkedInAPI():
             return False
         # Use fuzzy matching to check company name and person name in title
         title_lower = result['title'].lower()
-        if fuzz.partial_ratio(company_name.lower(), title_lower) < 80:
+        if fuzz.partial_ratio(company_name.lower(), title_lower) < 70:
             return False
-        if fuzz.partial_ratio(name.lower(), title_lower) < 80:
+        if fuzz.partial_ratio(name.lower(), title_lower) < 70:
             return False
         
         return True
