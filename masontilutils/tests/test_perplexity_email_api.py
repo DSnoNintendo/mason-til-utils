@@ -10,33 +10,49 @@ class TestPerplexityEmailAPI(unittest.TestCase):
         self.assertIsNotNone(self.api_key, "PERPLEXITY_API_KEY environment variable is not set")
         
         self.api = PerplexityEmailAPI(self.api_key)
-        print(self.api_key)
 
-    def test_call_with_contact(self):
-        """Test the API call with a contact name provided."""
+    # def test_call_with_contact(self):
+    #     """Test the API call with a contact name provided."""
+    #     response = self.api.call(
+    #         company_name="American Institute of Architects, Santa Clara Valley",
+    #         city="San Jose",
+    #         state="CA",
+    #         contact="Brent McClureAIA"
+    #     )
+    #     self.assertTrue(type(response) == list)
+    #     self.assertTrue(len(response) > 0)
+    #     for email in response:
+    #         self.assertIsNotNone(email["email"])
+    #         self.assertIsNotNone(email["sources"])
+    #         self.assertTrue(len(email["email"]) > 0)
+    #         self.assertTrue(len(email["sources"]) > 0)
+    
+    def test_call_without_contact(self):
+        """Test the API call without a contact name."""
+        print("test_call_without_contact")
         response = self.api.call(
             company_name="American Institute of Architects, Santa Clara Valley",
             city="San Jose",
             state="CA",
-            contact="Brent McClureAIA"
         )
-        print(response)
-        self.assertIsNotNone(response)
-        self.assertEqual(APIResponse.FOUND, response["response_type"])
-        self.assertGreaterEqual(len(response.keys()), 1)
-    
+        self.assertTrue(type(response) == list)
+        self.assertTrue(len(response) > 0)
+        for email in response:
+            self.assertIsNotNone(email["email"])
+            self.assertIsNotNone(email["sources"])
+            self.assertTrue(len(email["email"]) > 0)
+            self.assertTrue(len(email["sources"]) > 0)
 
-
-    # def test_call_without_contact(self):
-    #     """Test the API call without a contact name."""
+    # def test_call_with_invalid_company_name(self):
+    #     """Test the API call with an invalid company name."""
+    #     print("test_call_with_invalid_company_name")
     #     response = self.api.call(
-    #         company_name="American Institute of Architects, Santa Clara Valley",
+    #         company_name="Invalid Company Name",
     #         city="San Francisco",
     #         state="CA"
     #     )
-    #     self.assertIsNotNone(response)
-    #     self.assertIn("response_type", response)
-    #     self.assertIn("results", response)
+    #     print(response)
+    #     self.assertIsNone(response)
 
 if __name__ == '__main__':
     unittest.main() 

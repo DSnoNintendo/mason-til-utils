@@ -16,33 +16,32 @@ EMAIL_OUTPUT_SYSTEM_MESSAGE = (
     "2. In instances where a specific contact is requested, if no email is found for that specific contact, "
         "provide the best email for getting in contact with them through their org. "
     "3. Only return None if all options are exhausted. "
-    "4. Do not make guesses."
+    "4. 'info@' or 'contact@' emails should be last priority. Sales and marketing emails should never be included."
     "5. If an email address seems like personal information, it isn't."
-    "6. List all sources you used to find the email address."
+    "6. List sources where the requested email is explicitly found."
+    "7. Do not create an email that is not explicitly found in sources."
 )
 
-PERPLEXITY_EMAIL_JSON_FORMAT = (
-    """
-    {{
-        'email@example.com' : {{
-            'contact': {{
-                'name': 'John Doe',
-                'title': 'CEO'
-            }},
-            'sources_for_email': [source_link, source_link, source_link],
-            'sources_for_contact': [source_link, source_link, source_link]
-        }},
+PERPLEXITY_EMAIL_JSON_FORMAT = """
+    {
+        'email@example.com' : {
+            'sources': [source_link, source_link, source_link],
+        },
+        'email2@example.com' : {
+            'sources': [source_link, source_link, source_link],
+        },
         ...
-    }}
+    }
     If the email is not attributed to an executive, the contact field should be None.
-    """
-)
+"""
+
 
 PERPLEXITY_EMAIL_QUERY = """
     Find the email address most suitable for contacting a president or executive of the 
     following business. List the name of an executive or president if you can find one. 
-    'info@' or 'contact@' emails should be last priority. Sales and marketing emails should never be included.
+    
     If a found email is not attributed to the requested company, include it but find another email attributed to the company. 
+    Do not create an email that is not explicitly found in the sources.
     business name: {company_name}, 
     location: {city}, {state}.
     Output your findings in JSON format. 
@@ -55,6 +54,7 @@ PERPLEXITY_EMAIL_QUERY_WITH_CONTACT = """
     following business. List the name of an executive or president if you can find one. 
     'info@' or 'contact@' emails should be last priority. Sales and marketing emails should never be included.
     If a found email is not attributed to the requested company, include it but find another email attributed to the company.
+    Do not create an email that is not explicitly found in the sources.
     admin name: {contact} 
     business name: {company_name}, 
     location: {city}, {state}.
@@ -128,8 +128,7 @@ When responding, format the executive information in a json string as follows:
                         "contact": "...",
                         "sources": ["link", "link"]
                     }
-                }
-            ],
+            }
         },
     2 : ...
 }

@@ -167,42 +167,31 @@ class PerplexityNAICSCodeAPI(ThreadedPerplexitySonarAPI):
 
 class PerplexityEmailAPI(ThreadedPerplexitySonarAPI):
     def __init__(self, api_key: str):
+        self.email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
         super().__init__(api_key)
 
-    def extract_emails(self, text: str) -> list:
-        """Extract all valid email addresses from a string"""
-        email_pattern = r'\b[A-Za-z0-9._*%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-        emails = re.findall(email_pattern, text, re.IGNORECASE)
-        return list(set(emails))  # Return unique emails
-
-
-    def build_response(self, response_type, results) -> dict:
+    def email_valid(self, email: str) -> bool:
+        """Check if an email is valid"""
+        return re.match(self.email_regex, email) is not None
+    
+    def build_response(self, results) -> List[dict]:
+        res = list()
         if results:
             json_string = clean_deep_research_text(results)
             json_string = extract_json_substring(json_string)
-            # json_string = clean_deep_research_text(json_string)
-            res = ast.literal_eval(json_string)
+            # Ensure the JSON string has proper string keys
+            json_string = re.sub(r'(\d+)\s*:', r'"\1":', json_string)
+            loaded_json = ast.literal_eval(json_string)
+            for key, value in loaded_json.items():
+                email_dict = dict()
+                if self.email_valid(key):
+                    email_dict["email"] = key
+                    email_dict["sources"] = value["sources"]
+                    res.append(email_dict)
         else:
-            res = dict()
-            
-        res["response_type"] = response_type
+            return res
 
         return res
-
-
-    def get_response_type(self, response):
-        if "@" in response:
-            emails = self.extract_emails(response)
-            if all("*" in email for email in emails):
-                print(f"Redacted email returned {emails}")
-                return APIResponse.REJECTED
-            return APIResponse.FOUND
-
-        elif "None" in response or "@" not in response:
-            return APIResponse.NONE
-
-        return APIResponse.ERROR
-
 
     def call(self,
              company_name: str,
@@ -237,16 +226,14 @@ class PerplexityEmailAPI(ThreadedPerplexitySonarAPI):
         )
 
         answer = response["choices"][0]["message"]["content"]
-        response_type = self.get_response_type(answer)
 
         if "error" not in response:
-            if response_type == APIResponse.FOUND:
-                return self.build_response(response_type=response_type, results=answer)
-            else:
-                return self.build_response(response_type=response_type, results=None)
+            if "None" in answer:
+                return None
+            return self.build_response(results=answer)
         else:
             print(f"Error: {response['error']}")
-            return self.build_response(response_type=APIResponse.ERROR, results=None)
+            return None
 
 class PerplexityBusinessDescAPI(ThreadedPerplexitySonarAPI):
     def __init__(self, api_key: str):
@@ -287,14 +274,18 @@ class PerplexityExecutiveAPI(ThreadedPerplexitySonarAPI):
     def build_response(self, results) -> List[dict]:
         res = list()
         if results:
-            json_string = clean_deep_research_text(results)
-            json_string = extract_json_substring(json_string)
-            # Ensure the JSON string has proper string keys
-            json_string = re.sub(r'(\d+)\s*:', r'"\1":', json_string)
-            loaded_json = ast.literal_eval(json_string)
-            print(loaded_json)
-            for key, value in loaded_json.items():
-                res.append(value)
+            try:
+                json_string = clean_deep_research_text(results)
+                json_string = extract_json_substring(json_string)
+                # Ensure the JSON string has proper string keys
+                json_string = re.sub(r'(\d+)\s*:', r'"\1":', json_string)
+                loaded_json = ast.literal_eval(json_string)
+                print(loaded_json)
+                for key, value in loaded_json.items():
+                    res.append(value)
+            except Exception as e:
+                print(f"Error: {e}")
+                return json_string
         else:
             res = list()
 
@@ -337,6 +328,7 @@ class PerplexityExecutiveAPI(ThreadedPerplexitySonarAPI):
 
         if "error" not in response:
             answer = response["choices"][0]["message"]["content"]
+            print(answer)
             if "None" in answer:
                 return None
             res =  self.build_response(results=answer)
