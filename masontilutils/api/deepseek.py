@@ -137,25 +137,10 @@ class DeepseekNAICSCodeAPI(ThreadedDeepseekR1API):
     def __init__(self, api_key: str):
         super().__init__(api_key=api_key)
 
-    def handle_industry_classification(self, industry_classification: str | None) -> str:
-        if industry_classification is None:
-            return None
-        
-        if industry_classification == "Construction":
-            return "C"
-        elif industry_classification == "Professional Services":
-            return "P"
-        elif industry_classification == "Architecture":
-            return "A"
-        elif industry_classification == "Goods & Services (Non-IT)":
-            return "G (Non-IT)"
-        elif industry_classification == "Goods & Services (IT)":
-            return "G (IT)"
-
-        return industry_classification
 
 
     def format_response(self, response: str) -> dict | None:
+        json_string = None
         try:
             json_string = clean_deep_research_text(response)
             json_string = extract_json_substring(json_string)
@@ -168,10 +153,10 @@ class DeepseekNAICSCodeAPI(ThreadedDeepseekR1API):
 
             # Cast string numeric keys to integers
             final = {int(k) if k.isnumeric() else k: int(v) if v != "None" and k.isnumeric() else None for k, v in response_dict.items()}
-            final["industry_classification"] = self.handle_industry_classification(response_dict["industry_classification"])
 
             return final
         except Exception as e:
+            print(f"Error Parsing JSON: {json_string}")
             return None
 
     def call(self,
