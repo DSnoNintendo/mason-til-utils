@@ -100,13 +100,22 @@ NAICS_CODE_QUERY_CONTRACT = (
 )
 
 NAICS_CODE_OUTPUT_MESSAGE = (
-    "Return either ONLY the requested NAICS code or None. Do not include extra context. "
-    "Return up to 3 codes in JSON format. \n"
+    "Return either ONLY the requested NAICS code and industry classification or None. Do not include extra context. "
+    "Return up to 3 codes in JSON format. Based on the the codes, return the most relevant industry classification. \n"
+    "Industry classification should strictly be one of the following:\n"
+    "1. Construction\n"
+    "2. Professional Services\n"
+    "4. Architecture\n"
+    "5. Goods & Services (Non-IT)\n"
+    "6. Goods & Services (IT)\n"
+    "6. Other\n"
+    "7. None\n"
     "Example: \n"
     "{"
     "1: code1 (or None if no code is found), "
     "2: code2 (or None if no code is found), "
     "3: code3 (or None if no code is found)"
+    "industry_classification: industry_classification"
     "}\n"
 )
 

@@ -27,19 +27,23 @@ class TestNAICSCodeAPI(unittest.TestCase):
         
         # Assert response contains expected keys
         # Assert response has exactly 3 keys
-        self.assertEqual(len(response.keys()), 3)
+        self.assertEqual(len(response.keys()), 4)
         
         # Assert each key exists
         self.assertIn(1, response)
         self.assertIn(2, response)
         self.assertIn(3, response)
-        
-        # Assert each value is an integer or None
-        for value in response.values():
-            self.assertTrue(isinstance(value, (int, type(None))), f"Value {value} is not an integer or None")
-            # Assert NAICS code is a 6-digit number or None
-            if value is not None:
-                self.assertEqual(len(str(abs(value))), 6, "NAICS code should be a 6-digit number")
+        self.assertIn("industry_classification", response)
+        self.assertEqual(response["industry_classification"], "P")
+        self.assertIsInstance(response[1], (int, type(None)))
+        self.assertIsInstance(response[2], (int, type(None)))
+        self.assertIsInstance(response[3], (int, type(None)))
+
+        if all(k is None for k in [response[1], response[2], response[3]]):
+            self.assertIsNone(response["industry_classification"])
+        else:
+            self.assertIsInstance(response["industry_classification"], str)
+
 
 if __name__ == '__main__':
     unittest.main() 

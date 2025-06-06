@@ -1,4 +1,6 @@
+import ast
 import json
+import re
 import threading
 import time
 import requests
@@ -7,6 +9,7 @@ from urllib3.util import Retry
 from typing import Dict, Any, Optional
 
 from masontilutils.api.queries import NAICS_CODE_OUTPUT_MESSAGE, NAICS_CODE_QUERY_DESCRIPTION, NAICS_CODE_QUERY_CONTRACT
+from masontilutils.utils import clean_deep_research_text, extract_json_substring
 
 
 class ThreadedDeepseekR1API:
@@ -50,7 +53,7 @@ class ThreadedDeepseekR1API:
             self,
             query: str = None,
             model: str = "deepseek-reasoner",
-            max_tokens: Optional[int] = 100,
+            max_tokens: Optional[int] = 3000,
             **additional_args
     ) -> Dict[str, Any]:
         """
@@ -134,20 +137,39 @@ class DeepseekNAICSCodeAPI(ThreadedDeepseekR1API):
     def __init__(self, api_key: str):
         super().__init__(api_key=api_key)
 
+    def handle_industry_classification(self, industry_classification: str | None) -> str:
+        if industry_classification is None:
+            return None
+        
+        if industry_classification == "Construction":
+            return "C"
+        elif industry_classification == "Professional Services":
+            return "P"
+        elif industry_classification == "Architecture":
+            return "A"
+        elif industry_classification == "Goods & Services (Non-IT)":
+            return "G (Non-IT)"
+        elif industry_classification == "Goods & Services (IT)":
+            return "G (IT)"
+
+        return "X"
+
+
     def format_response(self, response: str) -> dict | None:
-        json_string = response.strip('```json').strip('```').strip()
-        json_dict = json.loads(json_string)
-        keys = list(json_dict.keys())
-        for key in keys:
-            int_key = int(key)
-            json_dict[int_key] = json_dict[key]
-            del json_dict[key]
-            try:
-                json_dict[int_key] = int(json_dict[int_key])
-                
-            except (ValueError, TypeError):
-                json_dict[int_key] = None
-        return json_dict
+        json_string = clean_deep_research_text(response)
+        json_string = extract_json_substring(json_string)
+        # Ensure the JSON string has proper string keys
+        json_string = re.sub(r'(\d+)\s*:', r'"\1":', json_string)
+        response_dict = ast.literal_eval(json_string)
+
+        if all(value == "None" for value in response_dict.values()):
+            return None
+
+        # Cast string numeric keys to integers
+        final = {int(k) if k.isnumeric() else k: int(v) if v != "None" and k.isnumeric() else None for k, v in response_dict.items()}
+        final["industry_classification"] = self.handle_industry_classification(response_dict["industry_classification"])
+
+        return final
 
     def call(self,
              description: str,
@@ -165,7 +187,6 @@ class DeepseekNAICSCodeAPI(ThreadedDeepseekR1API):
                 {"role": "user", "content": query}
             ]
         )
-
         if "error" not in response:
             answer = response["choices"][0]["message"]["content"]
             return self.format_response(answer)
