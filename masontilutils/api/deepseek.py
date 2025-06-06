@@ -152,7 +152,7 @@ class DeepseekNAICSCodeAPI(ThreadedDeepseekR1API):
         elif industry_classification == "Goods & Services (IT)":
             return "G (IT)"
 
-        return "X"
+        return industry_classification
 
 
     def format_response(self, response: str) -> dict | None:
