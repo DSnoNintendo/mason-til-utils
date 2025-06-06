@@ -137,31 +137,14 @@ class DeepseekNAICSCodeAPI(ThreadedDeepseekR1API):
     def __init__(self, api_key: str):
         super().__init__(api_key=api_key)
 
-
-
-    def format_response(self, response: str) -> dict | None:
-        json_string = None
-        try:
-            json_string = clean_deep_research_text(response)
-            json_string = extract_json_substring(json_string)
-            # Ensure the JSON string has proper string keys
-            json_string = re.sub(r'(\d+)\s*:', r'"\1":', json_string)
-            response_dict = json.loads(json_string)
-
-            if all(value == "None" for value in response_dict.values()):
-                return None
-
-            # Cast string numeric keys to integers
-            final = {int(k) if k.isnumeric() else k: int(v) if v != "None" and k.isnumeric() else None for k, v in response_dict.items()}
-
-            return final
-        except Exception as e:
-            print(f"Error Parsing JSON: {json_string}")
-            return None
+    def format_response(self, response: str) -> list[str]:
+        json_string = clean_deep_research_text(response)
+        naics_codes = re.findall(r'\d{6}', json_string)
+        return naics_codes
 
     def call(self,
              description: str,
-             ) -> dict | None:
+             ) -> list[str] | None:
 
         system_role = {"role": "system", "content": NAICS_CODE_OUTPUT_MESSAGE}
 
