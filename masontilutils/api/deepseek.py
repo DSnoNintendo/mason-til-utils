@@ -146,7 +146,7 @@ class DeepseekNAICSCodeAPI(ThreadedDeepseekR1API):
             json_string = extract_json_substring(json_string)
             # Ensure the JSON string has proper string keys
             json_string = re.sub(r'(\d+)\s*:', r'"\1":', json_string)
-            response_dict = ast.literal_eval(json_string)
+            response_dict = json.loads(json_string)
 
             if all(value == "None" for value in response_dict.values()):
                 return None
