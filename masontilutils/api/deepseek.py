@@ -8,7 +8,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 from typing import Dict, Any, Optional
 
-from masontilutils.api.queries import NAICS_CODE_OUTPUT_MESSAGE, NAICS_CODE_QUERY_DESCRIPTION, NAICS_CODE_QUERY_CONTRACT
+from masontilutils.api.queries import DESCRIPTION_OUTPUT_SYSTEM_MESSAGE, DESCRIPTION_QUERY, NAICS_CODE_OUTPUT_MESSAGE, NAICS_CODE_QUERY_DESCRIPTION, NAICS_CODE_QUERY_CONTRACT
 from masontilutils.utils import clean_deep_research_text, extract_json_substring
 
 
@@ -161,6 +161,40 @@ class DeepseekNAICSCodeAPI(ThreadedDeepseekR1API):
         if "error" not in response:
             answer = response["choices"][0]["message"]["content"]
             return self.format_response(answer)
+        else:
+            print(f"Error: {response['error']}")
+            return None
+
+class DeepseekBusinessDescriptionAPI(ThreadedDeepseekR1API):
+    def __init__(self, api_key: str):
+        super().__init__(api_key=api_key)
+
+    def call(self,
+             company_name: str,
+             city: str,
+             state: str,
+             ) -> list[str] | None:
+
+        system_role = {"role": "system", "content": DESCRIPTION_OUTPUT_SYSTEM_MESSAGE}
+
+        query = DESCRIPTION_QUERY.format(
+            company_name=company_name,
+            city=city,
+            state=state
+        )
+
+        response = super().execute_query(
+            model="deepseek-chat",
+            messages=[
+                system_role,
+                {"role": "user", "content": query}
+            ]
+        )
+        if "error" not in response:
+            answer = response["choices"][0]["message"]["content"]
+            if "None" in answer:
+                return None
+            return clean_deep_research_text(answer)
         else:
             print(f"Error: {response['error']}")
             return None
