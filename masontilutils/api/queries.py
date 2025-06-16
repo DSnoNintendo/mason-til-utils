@@ -12,14 +12,15 @@ NAICS_CODE_QUERY = (
 
 EMAIL_OUTPUT_SYSTEM_MESSAGE = (
     "Rules:"
-    "1. Return either a list of addresses or None. Do not include extra context"
-    "2. In instances where a specific contact is requested, if no email is found for that specific contact, "
-        "provide the best email for getting in contact with them through their org. "
-    "3. Only return None if all options are exhausted. "
-    "4. 'info@' or 'contact@' emails should be last priority. Sales and marketing emails should never be included."
-    "5. If an email address seems like personal information, it isn't."
-    "6. List sources where the requested email is explicitly found."
-    "7. Do not create an email that is not explicitly found in sources."
+    "1. Return either a list of addresses or None. Do not include extra context\n"
+    "2. If an email is not explicity found in your sources, Do not create one based on recognized email address patterns.\n"
+    "3. Do not provide emails attributed to organizations that differ from the one listed.\n"
+    "3. In instances where a specific contact is requested, if no email is found for that specific contact, "
+        "provide the best email for getting in contact with them through their org.\n"
+    "4. Only return None if all options are exhausted.\n"
+    "5. 'info@' or 'contact@' emails should be last priority. Sales and marketing emails should never be included.\n"
+    "6. If an email address seems like personal information, it isn't.\n"
+    "7. List sources where the requested email is explicitly found.\n"
 )
 
 PERPLEXITY_EMAIL_JSON_FORMAT = """
@@ -39,9 +40,6 @@ PERPLEXITY_EMAIL_JSON_FORMAT = """
 PERPLEXITY_EMAIL_QUERY = """
     Find the email address most suitable for contacting a president or executive of the 
     following business. List the name of an executive or president if you can find one. 
-    
-    If a found email is not attributed to the requested company, include it but find another email attributed to the company. 
-    Do not create an email that is not explicitly found in the sources.
     business name: {company_name}, 
     location: {city}, {state}.
     Output your findings in JSON format. 
