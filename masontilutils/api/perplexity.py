@@ -58,7 +58,7 @@ class ThreadedPerplexitySonarAPI:
         self,
         query: str = None,
         model: str = "sonar-pro",
-        max_tokens: Optional[int] = 1000,
+        max_tokens: Optional[int] = 5000,
         temperature: float = 0.1,
         **additional_args
     ) -> Dict[str, Any]:
@@ -177,8 +177,7 @@ class PerplexityEmailAPI(ThreadedPerplexitySonarAPI):
     def build_response(self, results) -> List[dict]:
         res = list()
         if results:
-            json_string = clean_deep_research_text(results)
-            json_string = extract_json_substring(json_string)
+            json_string = extract_json_substring(results)
             # Ensure the JSON string has proper string keys
             json_string = re.sub(r'(\d+)\s*:', r'"\1":', json_string)
             loaded_json = ast.literal_eval(json_string)
@@ -228,9 +227,10 @@ class PerplexityEmailAPI(ThreadedPerplexitySonarAPI):
         answer = response["choices"][0]["message"]["content"]
 
         if "error" not in response:
-            if "None" in answer:
+            reply = clean_deep_research_text(answer)
+            if "None" in reply:
                 return None
-            return self.build_response(results=answer)
+            return self.build_response(results=reply)
         else:
             print(f"Error: {response['error']}")
             return None

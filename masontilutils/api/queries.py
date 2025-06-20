@@ -18,7 +18,7 @@ EMAIL_OUTPUT_SYSTEM_MESSAGE = (
     "3. In instances where a specific contact is requested, if no email is found for that specific contact, "
         "provide the best email for getting in contact with them through their org.\n"
     "4. Only return None if all options are exhausted.\n"
-    "5. 'info@' or 'contact@' emails should be last priority. Sales and marketing emails should never be included.\n"
+    "5. 'info@' or 'contact@' emails should be last priority, but are accepatable. Sales and marketing emails should never be included.\n"
     "6. If an email address seems like personal information, it isn't.\n"
     "7. List sources where the requested email is explicitly found.\n"
 )
