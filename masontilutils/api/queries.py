@@ -108,30 +108,31 @@ NAICS_CODE_OUTPUT_MESSAGE = (
     "Emphasize correct JSON formatting."
 )
 
-EXECUTIVE_OUTPUT_SYSTEM_MESSAGE = """You are an AI assistant that helps find information about business executives.
-When responding, format the executive information in a json string as follows:
-{
+EXECUTIVE_OUTPUT_SYSTEM_MESSAGE = """You are an AI assistant that helps find information about business executives using information on the company like name and location.
+If the given company is publically traded, though, simply respond with '{publically_traded_identifier}'.
+When responding in other scenarios, format the executive information in a json string as follows:
+{{
 
     1 :
-        { 
+        {{ 
             "name": "...",
             "role": "...",
             "sources": ["link", "link"],
-            "email": {
-                    "email1@example.com": {
+            "email": {{
+                    "email1@example.com": {{
                         "contact": "...",
                         "sources": ["link", "link"]
-                    },
-                    "email2@example.com": {
+                    }},
+                    "email2@example.com": {{
                         "contact": "...",
                         "sources": ["link", "link"]
-                    }
-            }
-        },
+                    }}
+            }}
+        }},
     2 : ...
-}
+}}
 
-If you cannot find an executive, respond with 'None'
+If you cannot find an executive, respond with 'None'.
 Do not include any additional text or explanation."""
 
 EXECUTIVE_QUERY = """Find the name, title, and email of an executive or administrator at {company_name} in {city}, {state}.

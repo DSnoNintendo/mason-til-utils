@@ -270,6 +270,7 @@ class PerplexityBusinessDescAPI(ThreadedPerplexitySonarAPI):
 class PerplexityExecutiveAPI(ThreadedPerplexitySonarAPI):
     def __init__(self, api_key: str):
         super().__init__(api_key)
+        self.publically_traded_identifier = "comapny_publically_traded"
 
     def build_response(self, results) -> List[dict]:
         res = list()
@@ -310,7 +311,13 @@ class PerplexityExecutiveAPI(ThreadedPerplexitySonarAPI):
              state: str,
         ) -> dict:
 
-        system_role = {"role": "system", "content": EXECUTIVE_OUTPUT_SYSTEM_MESSAGE}
+        print(EXECUTIVE_OUTPUT_SYSTEM_MESSAGE.format(
+            publically_traded_identifier=self.publically_traded_identifier))
+
+        system_role = {
+            "role": "system", "content": EXECUTIVE_OUTPUT_SYSTEM_MESSAGE.format(
+            publically_traded_identifier=self.publically_traded_identifier)
+        }
 
         query = EXECUTIVE_QUERY.format(
             company_name=company_name,
@@ -329,8 +336,11 @@ class PerplexityExecutiveAPI(ThreadedPerplexitySonarAPI):
         if "error" not in response:
             answer = response["choices"][0]["message"]["content"]
             print(answer)
-            if "None" in answer:
+            if self.publically_traded_identifier in clean_deep_research_text(answer):
+                return "C"
+            elif "None" in answer:
                 return None
+            
             res =  self.build_response(results=answer)
             return res
         else:

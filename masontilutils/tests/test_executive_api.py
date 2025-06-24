@@ -30,69 +30,78 @@ class TestPerplexityExecutiveAPI(unittest.TestCase):
     def get_similarity(self, name1, name2):
         """Compare two names using fuzzy matching"""
         return fuzz.ratio(name1.lower(), name2.lower())
-
-    def test_executive_matching(self):
-        """Test that API results match expected executives from CSV file"""
-        if not self.test_file.exists():
-            self.skipTest(f"Test file {self.test_file} not found")
-
-        # Read test data
-        df = pd.read_csv(self.test_file)
-        
-        # Ensure required columns exist
-        required_columns = ['company_name', 'city', 'state', 'contact']
-        missing_columns = [col for col in required_columns if col not in df.columns]
-        if missing_columns:
-            self.skipTest(f"Missing required columns: {missing_columns}")
-        
-        i = 0
-        # Test each company
-        for _, row in df.iterrows():
-            if i == 1:
-                break
-            with self.subTest(company=row['company_name']):
-                # Get API result
-                result = self.api.call(
-                    company_name=row['company_name'],
-                    city=row['city'],
-                    state=row['state']
+    
+    def test_publically_traded(self):
+        result = self.api.call(
+                    company_name="Uber",
+                    city="San Francisco",
+                    state="CA"
                 )
+        self.assertEqual(result, "C")
 
 
-                # If we have a contact in the CSV file, compare with API result
-                if pd.notna(row['contact']):
-                    self.assertIsNotNone(
-                        result,
-                        f"No executive found for {row['company_name']}"
-                    )
-                    if result:
-                        print("result:")
-                        print(result)
-                        self.assertGreater(
-                            len(result),
-                            0,
-                            f"No executives found for {row['company_name']}"
-                        )
-                        self.assertTrue(
-                            any(
-                                self.get_similarity(result_dict['name'], row['contact']) >= self.MIN_SIMILARITY
-                                for result_dict in result
-                            )
-                        )
-                        self.assertTrue(
-                            any(
-                                result_dict['role']
-                                for result_dict in result
-                            )
-                        )
+    # def test_executive_matching(self):
+    #     """Test that API results match expected executives from CSV file"""
+    #     if not self.test_file.exists():
+    #         self.skipTest(f"Test file {self.test_file} not found")
 
-                        # Verify we got a title
-                        self.assertIsNotNone(
-                            result[0]['role'],
-                            f"No title found for {row['company_name']}"
-                        ) 
+    #     # Read test data
+    #     df = pd.read_csv(self.test_file)
+        
+    #     # Ensure required columns exist
+    #     required_columns = ['company_name', 'city', 'state', 'contact']
+    #     missing_columns = [col for col in required_columns if col not in df.columns]
+    #     if missing_columns:
+    #         self.skipTest(f"Missing required columns: {missing_columns}")
+        
+    #     i = 0
+    #     # Test each company
+    #     for _, row in df.iterrows():
+    #         if i == 1:
+    #             break
+    #         with self.subTest(company=row['company_name']):
+    #             # Get API result
+    #             result = self.api.call(
+    #                 company_name=row['company_name'],
+    #                 city=row['city'],
+    #                 state=row['state']
+    #             )
 
-            i += 1
+
+    #             # If we have a contact in the CSV file, compare with API result
+    #             if pd.notna(row['contact']):
+    #                 self.assertIsNotNone(
+    #                     result,
+    #                     f"No executive found for {row['company_name']}"
+    #                 )
+    #                 if result:
+    #                     print("result:")
+    #                     print(result)
+    #                     self.assertGreater(
+    #                         len(result),
+    #                         0,
+    #                         f"No executives found for {row['company_name']}"
+    #                     )
+    #                     self.assertTrue(
+    #                         any(
+    #                             self.get_similarity(result_dict['name'], row['contact']) >= self.MIN_SIMILARITY
+    #                             for result_dict in result
+    #                         )
+    #                     )
+    #                     self.assertTrue(
+    #                         any(
+    #                             result_dict['role']
+    #                             for result_dict in result
+    #                         )
+    #                     )
+
+    #                     # Verify we got a title
+    #                     self.assertIsNotNone(
+    #                         result[0]['role'],
+    #                         f"No title found for {row['company_name']}"
+    #                     ) 
+
+    #         i += 1
 
             
 

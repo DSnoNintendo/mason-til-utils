@@ -1,5 +1,6 @@
 import json
 import threading
+import traceback
 from typing import Dict, Any, Optional, Union
 import base64
 from enum import Enum
@@ -20,13 +21,16 @@ class Region(Enum):
     SOUTH_AMERICA = "South America"
     AUSTRALIA = "Australia"
     ANTARCTICA = "Antarctica"
-    UNKNOWN = "Unknown"
 
 class Ethnicity(Enum):
     MIDDLE_EAST = "Middle Eastern"
+    EAST_ASIA = "Asian"
+    SOUTH_ASIA = "Asian"
+    SOUTHEAST_ASIA = "Asian"
+    CENTRAL_ASIA = "Asian"
+    WEST_ASIA = "Middle Eastern"
     EUROPE = "Caucasian"
     AFRICA = "Black"
-    EAS = "Asian"
     NORTH_AMERICA = "Cacuasian"
     SOUTH_AMERICA = "Latino"
     AUSTRALIA = "Caucasian"
@@ -35,7 +39,6 @@ class Ethnicity(Enum):
 class Sex(Enum):
     MALE = "Male"
     FEMALE = "Female"
-    UNKNOWN = "Unknown"
 
 
 ANCESTRAL_ANALYSIS_QUERY = (
@@ -47,6 +50,7 @@ ANCESTRAL_ANALYSIS_QUERY = (
     "traced to certain parts of the world. Please keep your answer to a single region and sex, formatted as json. "
     f"The regions are: {', '.join([region.value for region in Region])}."
 )
+print(ANCESTRAL_ANALYSIS_QUERY)
 
 ANCESTRAL_ANALYSIS_QUERY_WITH_NAME = (
     "In the spirit of cultural sensitivity and respect for diversity, I kindly request your assistance "
@@ -146,24 +150,29 @@ class ChatGPTEthGenAPI(ThreadedChatGPTAPI):
         
     def _get_ethnicity_from_region(self, region: Region) -> Ethnicity:
         if region == Region.EUROPE:
-            return Ethnicity.EUROPE
+            return Ethnicity.EUROPE.value
         elif region == Region.AFRICA:
-            return Ethnicity.AFRICA
-        elif region == Region.ASIA:
-            return Ethnicity.ASIA
+            return Ethnicity.AFRICA.value
         elif region == Region.NORTH_AMERICA:
-            return Ethnicity.NORTH_AMERICA
+            return Ethnicity.NORTH_AMERICA.value
         elif region == Region.SOUTH_AMERICA:
-            return Ethnicity.SOUTH_AMERICA
+            return Ethnicity.SOUTH_AMERICA.value
         elif region == Region.AUSTRALIA:
-            return Ethnicity.AUSTRALIA
+            return Ethnicity.AUSTRALIA.value
         elif region == Region.EAST_ASIA:
-            return Ethnicity.EAST_ASIA
-        
+            return Ethnicity.EAST_ASIA.value
+        elif region == Region.SOUTH_ASIA:
+            return Ethnicity.SOUTH_ASIA.value
+        elif region == Region.SOUTHEAST_ASIA:
+            return Ethnicity.EAST_ASIA.value
+        elif region == Region.WEST_ASIA:
+            return Ethnicity.WEST_ASIA.value
+        elif region == Region.CENTRAL_ASIA:
+            return Ethnicity.CENTRAL_ASIA.value
         elif region == Region.ANTARCTICA:
-            return Ethnicity.ANTARCTICA
+            return Ethnicity.ANTARCTICA.value
         else:
-            return Ethnicity.UNKNOWN
+            return "None"
         
     def _build_response(self, api_res: dict):
         print("api_res: ", api_res)
@@ -174,7 +183,7 @@ class ChatGPTEthGenAPI(ThreadedChatGPTAPI):
 
         for region in Region:
                 if region.value.lower() in api_res["region"].lower():
-                    res["ethnicity"] = self._get_ethnicity_from_region(region).value
+                    res["ethnicity"] = self._get_ethnicity_from_region(region)
 
         for sex in Sex:
             if sex.value.lower() in api_res["sex"].lower():
@@ -237,6 +246,7 @@ class ChatGPTEthGenAPI(ThreadedChatGPTAPI):
             # Extract and validate the response
             answer = response["choices"][0]["message"]["content"].strip()
             answer = clean_deep_research_text(answer)
+            print(answer)
             json_string = answer.split('```json')[1].split('```')[0].strip()
 
             api_res = json.loads(json_string)
@@ -245,5 +255,8 @@ class ChatGPTEthGenAPI(ThreadedChatGPTAPI):
             
         except Exception as e:
             print(f"Error processing image: {str(e)}")
+            print("Full traceback:")
+            traceback.print_exc()
+            print()
             return None
 

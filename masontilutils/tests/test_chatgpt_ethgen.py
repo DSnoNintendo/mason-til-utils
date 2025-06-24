@@ -21,11 +21,11 @@ class TestChatGPTEthGenAPI(unittest.TestCase):
 
         # Define expected image-region mappings
         cls.expected_mappings = {
-            '1_rahul sihag.jpg': {"ethnicity": Ethnicity.ASIA.value, "sex": Sex.MALE.value},
+            '1_rahul sihag.jpg': {"ethnicity": Ethnicity.EAST_ASIA.value, "sex": Sex.MALE.value},
             '2_ryan pritchard.jpg': {"ethnicity": Ethnicity.EUROPE.value, "sex": Sex.MALE.value},
-            '3_michelle lee.jpg': {"ethnicity": Ethnicity.ASIA.value, "sex": Sex.FEMALE.value},
+            '3_michelle lee.jpg': {"ethnicity": Ethnicity.EAST_ASIA.value, "sex": Sex.FEMALE.value},
             '4_timothy walker.jpg': {"ethnicity": Ethnicity.AFRICA.value, "sex": Sex.MALE.value},
-            '5_sahil faroukie.jpg': {"ethnicity": Ethnicity.MIDDLE_EAST.value, "sex": Sex.MALE.value}
+            '5_sahil faroukie.jpg': {"ethnicity": Ethnicity.WEST_ASIA.value, "sex": Sex.MALE.value}
         }
             
 
