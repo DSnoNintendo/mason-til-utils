@@ -1,7 +1,7 @@
 import os
 import unittest
 from pathlib import Path
-from masontilutils.api.chatgpt import ChatGPTEthGenAPI, Region, Ethnicity, Sex
+from masontilutils.api.chatgpt import ChatGPTEthGenAPI, ChatGPTGenderAPI, Ethnicity, Sex
 
 class TestChatGPTEthGenAPI(unittest.TestCase):
     @classmethod
@@ -13,7 +13,8 @@ class TestChatGPTEthGenAPI(unittest.TestCase):
             raise ValueError("CHATGPT_API_KEY environment variable not set")
 
         # Create API instance
-        cls.api = ChatGPTEthGenAPI(cls.api_key)
+        cls.ethgen_api = ChatGPTEthGenAPI(cls.api_key)
+        cls.gen_api = ChatGPTGenderAPI(cls.api_key)
 
         # Set up test images directory
         cls.test_images_dir = Path(__file__).parent / 'test_images'
@@ -43,7 +44,7 @@ class TestChatGPTEthGenAPI(unittest.TestCase):
             # Get prediction
             print("========== Testing with file ==========")
             print(f"Image path: {image_path}")
-            result = self.api.call(image_path=str(image_path))
+            result = self.ethgen_api.call(image_path=str(image_path))
             print(f"Result for {image_name}: {result}")
 
             # Assert result matches expected region
@@ -51,7 +52,7 @@ class TestChatGPTEthGenAPI(unittest.TestCase):
             
             if result != expected_res:
                 name = image_name.split('_')[1]
-                result = self.api.call(str(image_path), name)
+                result = self.ethgen_api.call(str(image_path), name)
 
                 self.assertIsNotNone(result, f"Failed to get result for {image_name}")
                 print(f"Result for {image_name} with name {name}: {result}")
@@ -64,18 +65,84 @@ class TestChatGPTEthGenAPI(unittest.TestCase):
 
     def test_image_analysis_with_url(self):
         url = "https://media.licdn.com/dms/image/v2/C4E03AQGOZgLtycIRdg/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1517726975275?e=1752710400&v=beta&t=nZo6W9gyIb7j_P11Zy6Z_AvLWeLLSmtHdh7VwLW5S3Q"
-        result = self.api.call(url, parse_url=True)
+        result = self.ethgen_api.call(url, parse_url=True)
         print(f"Result for {url}: {result}")
 
         self.assertEqual(result, {"ethnicity": Ethnicity.EUROPE.value, "sex": Sex.FEMALE.value})
 
+
+    def test_gen_api_male(self):
+        male_names = [ 
+            "Brad Beneski",  
+            "Brandon Purdy", 
+            "Jay Silver", 
+            "Brad Beneski",
+            "Ryan L Condon",
+            "Roger M Terfehr",
+            "John Agamalian",
+            "Montgomery Lowell West",
+            "Victor Jimenez",
+            "Anand Deshmukh",
+            "Hamid Rastega",
+            "William Vuono",
+            "Mike Bullert",
+            "Robert Stone",
+            "Bert Campton",
+            "Scott Neal",
+            "Cody Lamb",
+            "Adrian Loura",
+            "Tyler Bender",
+            "Troy Dalke",
+            "Dean F. Unger",
+            "Derek Schies",
+            "Ayad Jaber",
+            "Larry Yingling",
+            "Jim Stewart",
+            "Kevin Roach",
+            "Thomas Reichert",
+            "Scott Wheeler",
+            "Bill"
+        ]
+
+        female_names = [
+            "Vivian E. Norman",
+            "Geraldine Jones",
+            "Andrea Reed",
+            "Lisa Gallagher",
+            "Barbara M. Brand",
+            "Amanda Whyrick",
+            "Carol Loney",
+            "Evguenia Vatchkova"
+
+        ]
+
+        unknown = [
+            "J. Ross"
+        ]
+
+        for name in male_names:
+            print(name)
+            result = self.gen_api.call(name=name)
+            self.assertEqual(result, {"sex": Sex.MALE.value})
+
+        for name in female_names:
+            print(name)
+            result = self.gen_api.call(name=name)
+            self.assertEqual(result, {"sex": Sex.FEMALE.value})
+
+        for name in unknown:
+            print(name)
+            result = self.gen_api.call(name=name)
+            self.assertEqual(result, {"sex": None})
+
+
                 
 
-    # def test_invalid_image(self):
-    #     """Test handling of invalid image file"""
-    #     invalid_path = self.test_images_dir / 'nonexistent.jpg'
-    #     result = self.api.call(str(invalid_path))
-    #     self.assertIsNone(result, "Should return None for invalid image path")
+    def test_invalid_image(self):
+        """Test handling of invalid image file"""
+        invalid_path = self.test_images_dir / 'nonexistent.jpg'
+        result = self.api.call(str(invalid_path))
+        self.assertIsNone(result, "Should return None for invalid image path")
 
 if __name__ == '__main__':
     unittest.main() 

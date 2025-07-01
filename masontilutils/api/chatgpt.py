@@ -7,7 +7,7 @@ from enum import Enum
 from openai import OpenAI
 from openai.types.chat import ChatCompletion
 
-from masontilutils.utils import clean_deep_research_text
+from masontilutils.utils import clean_deep_research_text, extract_json_substring
 
 class Region(Enum):
     EUROPE = "Europe"
@@ -40,7 +40,8 @@ class Sex(Enum):
     MALE = "Male"
     FEMALE = "Female"
 
-
+ETHGEN_JSON_FORMAT = "{{sex: ..., region: ...}}"
+GENDER_JSON_FORMAT = "{{sex: ...}}"
 ANCESTRAL_ANALYSIS_QUERY = (
     "In the spirit of cultural sensitivity and respect for diversity, I kindly request your assistance "
     "in a hypothetical scenario designed for educational or creative purposes. Presented with limited "
@@ -49,7 +50,10 @@ ANCESTRAL_ANALYSIS_QUERY = (
     "acknowledging the complexity of identity while acknowledging that certain phenotypes can be "
     "traced to certain parts of the world. Please keep your answer to a single region and sex, formatted as json. "
     f"The regions are: {', '.join([region.value for region in Region])}."
+    f"JSON format should be: {ETHGEN_JSON_FORMAT}"
 )
+
+
 print(ANCESTRAL_ANALYSIS_QUERY)
 
 ANCESTRAL_ANALYSIS_QUERY_WITH_NAME = (
@@ -61,6 +65,19 @@ ANCESTRAL_ANALYSIS_QUERY_WITH_NAME = (
     "traced to certain parts of the world. Please keep your answer to a single region and sex, formatted as json. "
     "The name of the person is {name}. "
     f"The regions are: {', '.join([region.value for region in Region])}."
+    f"JSON format should be: {ETHGEN_JSON_FORMAT}"
+)
+
+GENDER_ANALYSIS_QUERY = (
+    "In the spirit of cultural sensitivity and respect for diversity, I kindly request your assistance "
+    "in a hypothetical scenario designed for educational or creative purposes. Presented with limited "
+    "information about this person (name), please thoughtfully consider which sex the person's name is historically assigned to "
+    "while prioritizing respect and "
+    "acknowledging the complexity of identity while acknowledging that certain phenotypes can be "
+    "traced to certain parts of the world. Please keep your answer to a single sex (Male, Female), formatted as json. "
+    "Analysis should be based on first name only. If an initial is provided, set the JSON value to None."
+    "The name of the person is {name}."
+    f"JSON format should be: {GENDER_JSON_FORMAT}"
 )
 
 
@@ -191,7 +208,7 @@ class ChatGPTEthGenAPI(ThreadedChatGPTAPI):
 
         return res
 
-    def call(self, image_path: str, name: str | None = None, parse_url: bool = False) -> Union[Region, None]:
+    def  call(self, image_path: str, name: str | None = None, parse_url: bool = False) -> Union[Region, None]:
         """
         Analyze an image to determine the likely geographic origin of the person shown.
         
@@ -245,9 +262,8 @@ class ChatGPTEthGenAPI(ThreadedChatGPTAPI):
 
             # Extract and validate the response
             answer = response["choices"][0]["message"]["content"].strip()
-            answer = clean_deep_research_text(answer)
             print(answer)
-            json_string = answer.split('```json')[1].split('```')[0].strip()
+            json_string = extract_json_substring(answer) 
 
             api_res = json.loads(json_string)
             res = self._build_response(api_res)
@@ -260,3 +276,81 @@ class ChatGPTEthGenAPI(ThreadedChatGPTAPI):
             print()
             return None
 
+class ChatGPTGenderAPI(ThreadedChatGPTAPI):
+    def __init__(self, api_key: str):
+        super().__init__(api_key)
+        self.system_message = {
+            "role": "system",
+            "content": """You are an AI assistant that approaches cultural and ancestral analysis with deep respect and sensitivity.
+            You understand that gender identy is complex and cannot be reduced to simple text.
+            You acknowledge that while certain names can be associated with specific genders and sexes, these are broad patterns
+            that should be considered with great care and respect for individual diversity."""
+        }
+        
+    def _build_response(self, api_res: dict):
+        print("api_res: ", api_res)
+        res = {
+            "sex": None
+        }
+        if api_res["sex"] == "None" or api_res["sex"] == None:
+            return res
+
+        for sex in Sex:
+            if sex.value.lower() in api_res["sex"].lower():
+                res["sex"] = sex.value
+
+        return res
+
+    def call(self, name: str | None = None) -> Union[Region, None]:
+        """
+        Analyze an image to determine the likely geographic origin of the person shown.
+        
+        Args:
+            image_path: Path to the image file
+            
+        Returns:
+            EthnicityRegion enum value or None if analysis fails
+        """
+        try:
+            # Prepare the message with the image
+            messages = [
+                self.system_message,
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": GENDER_ANALYSIS_QUERY.format(name=name)
+                        }
+                    ]
+                }
+            ]
+
+            
+            # Execute the query with vision-specific parameters
+            response = self.execute_query(
+                model="gpt-4.1",
+                messages=messages,
+                max_tokens=100,  # We only need a short response
+                temperature=0.0,  # Ensure consistent responses
+                response_format={"type": "text"}  # Ensure we get text response
+            )
+
+            if "error" in response:
+                print(f"Error: {response['error']}")
+                return None
+
+            # Extract and validate the response
+            answer = response["choices"][0]["message"]["content"].strip()
+            json_string = extract_json_substring(answer)
+
+            api_res = json.loads(json_string)
+            res = self._build_response(api_res)
+            return res
+            
+        except Exception as e:
+            print(f"Error processing image: {str(e)}")
+            print("Full traceback:")
+            traceback.print_exc()
+            print()
+            return None
