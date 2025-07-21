@@ -156,9 +156,17 @@ class PerplexityNAICSCodeAPI(ThreadedPerplexitySonarAPI):
             messages=[system_role, {"role": "user", "content": query}]
         )
 
+        retries = 0
+        while "error" in response and retries < 3:
+            print(f"Retrying due to error: {response['error']} (attempt {retries+1}/3)")
+            time.sleep(15)
+            response = super().execute_query(
+                messages=[system_role, {"role": "user", "content": query}]
+            )
+            retries += 1
+
         if "error" not in response:
             answer = response["choices"][0]["message"]["content"]
-            print(answer)
             return self.extract_code(answer)
         else:
             print(f"Error: {response['error']}")
@@ -224,6 +232,19 @@ class PerplexityEmailAPI(ThreadedPerplexitySonarAPI):
             ]
         )
 
+        retries = 0
+        while "error" in response and retries < 3:
+            print(f"Retrying due to error: {response['error']} (attempt {retries+1}/3)")
+            time.sleep(15)
+            response = super().execute_query(
+                model="sonar-deep-research",
+                messages=[
+                    system_role,
+                    {"role": "user", "content": query}
+                ]
+            )
+            retries += 1
+
         answer = response["choices"][0]["message"]["content"]
 
         if "error" not in response:
@@ -257,6 +278,16 @@ class PerplexityBusinessDescAPI(ThreadedPerplexitySonarAPI):
             model="sonar-pro",
             messages=[system_role, {"role": "user", "content": query}]
         )
+
+        retries = 0
+        while "error" in response and retries < 3:
+            print(f"Retrying due to error: {response['error']} (attempt {retries+1}/3)")
+            time.sleep(15)
+            response = super().execute_query(
+                model="sonar-pro",
+                messages=[system_role, {"role": "user", "content": query}]
+            )
+            retries += 1
 
         if "error" not in response:
             answer = response["choices"][0]["message"]["content"]
@@ -331,6 +362,19 @@ class PerplexityExecutiveAPI(ThreadedPerplexitySonarAPI):
                 {"role": "user", "content": query}
             ]
         )
+
+        retries = 0
+        while "error" in response and retries < 3:
+            print(f"Retrying due to error: {response['error']} (attempt {retries+1}/3)")
+            time.sleep(15)
+            response = super().execute_query(
+                model="sonar-deep-research",
+                messages=[
+                    system_role,
+                    {"role": "user", "content": query}
+                ]
+            )
+            retries += 1
 
         if "error" not in response:
             answer = response["choices"][0]["message"]["content"]
