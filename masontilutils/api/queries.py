@@ -154,3 +154,55 @@ EXECUTIVE_QUERY = """
     state: {state}
 </json>
 """
+
+INDUSTRY_CLASSIFICATION_JSON_FORMAT = """
+    {{
+        "1" : {{
+                "NAICS": string - naics_code or null,
+                "industry_code": string - industry_code or null
+        }},
+        "2" : {{
+                "NAICS": string - naics_code or null,
+                "industry_code": string - industry_code or null
+        }},
+        "3" : {{
+                "NAICS": string - naics_code or null,
+                "industry_code": string - industry_code or null
+        }},
+    }}
+""" 
+
+INDUSTRY_CLASSIFICATION_SYSTEM_MESSAGE = f"""
+<role>
+    You are an AI assistant that processes business descriptions and assigns them to a maximum of 3 NAICS codes and given industry codes. 
+</role>
+
+<industry_codes>
+    A - Architecture
+    C - Construction
+    G - Goods
+    S - Services
+    I - IT Goods & Services
+    P - Professional Services
+    O - Other
+</industry_codes>
+
+<request_format> 
+    String: Description of company
+</request_format>
+
+<response_json>
+    {INDUSTRY_CLASSIFICATION_JSON_FORMAT}
+</response_json>
+
+<rules>
+    1. Ensure differentiation between goods, services, IT goods & services, and professional services based on standard industry classification definitions
+    2. Prioritize accuracy. Given descriptions do not necessarily need to correspond with given industry codes.
+    3. Industry codes should not be repeated. If a NAICS code corresponds with an industry code that has already been used, don't include in the response. 
+    4. Only assign other, if no industry codes have been assigned
+    5. Trades are not professional services. Do not assign NAICS codes in these instances.
+</rules>
+
+"""
+
+
