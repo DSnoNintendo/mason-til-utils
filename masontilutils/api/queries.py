@@ -73,18 +73,40 @@ MARK_EMAIL_FOUND_QUERY = (
     "WHERE {id_column_name} = {id} ;"
 )
 
-DESCRIPTION_OUTPUT_SYSTEM_MESSAGE = (
-    "You are an AI assistant that helps find information about businesses based on records of their past work, company websites, and other sources. "
-    "You will be given a company name, city, and state. "
-    "You will then return a detailed description of the work the business does. Business history or employee size isn't important. Just the work they do."
-    "The description should be no more than 100 words. "
-    "Do not make assumptions. "
-)
+DESCRIPTION_OUTPUT_JSON = """
+{{
+    "description": string or null
+}}
+"""
+
+DESCRIPTION_OUTPUT_SYSTEM_MESSAGE = f"""
+    <role>
+        You are an AI assistant that provides descriptions of businesses
+    </role>
+
+    <request_format>
+        business name: string
+        state: string
+        city: string
+    </request_format>
+
+    <response_json>
+        {DESCRIPTION_OUTPUT_JSON}
+    </response_json>
+
+    <rules>
+        1. Keep descriptions to 60 words at most
+        2. Do not include company name or location in descriptions
+        3. Do not include any details unrelated to the specific work the business does
+        4. If no description is found, return None.
+    </rules>
+"""
+    
 
 DESCRIPTION_QUERY = (
-    "business name: {company_name}, "
-    "location: {city}, {state}."
-    "Output description only. It should be no more than 100 words. If you cannot find the business, return None."
+    "business name: {company_name}"
+    "state: {state}"
+    "city: {city}"
 )
 
 NAICS_CODE_QUERY_DESCRIPTION = (

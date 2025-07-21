@@ -254,15 +254,19 @@ class PerplexityBusinessDescAPI(ThreadedPerplexitySonarAPI):
         )
 
         response = super().execute_query(
-            model="sonar-deep-research",
+            model="sonar-pro",
             messages=[system_role, {"role": "user", "content": query}]
         )
 
         if "error" not in response:
             answer = response["choices"][0]["message"]["content"]
-            if "None" in answer:
+            json_string = extract_json_substring(answer)
+            api_res = json.loads(json_string)
+            
+            if api_res['description']:
+                return api_res['description']
+            else:
                 return None
-            return clean_deep_research_text(answer)
         else:
             print(f"Error: {response['error']}")
             return None
