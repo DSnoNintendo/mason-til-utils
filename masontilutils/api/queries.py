@@ -228,6 +228,7 @@ INDUSTRY_CLASSIFICATION_SYSTEM_MESSAGE = f"""
     3. Industry codes should not be repeated. If a NAICS code corresponds with an industry code that has already been used, don't include in the response. 
     4. Only assign other, if no industry codes have been assigned
     5. Trades are not professional services. Do not assign NAICS codes in these instances.
+    6. Goods and/or services imply a company sells to an end-user. Manufacturers may not always be goods or services.
 </rules>
 
 """
