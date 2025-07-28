@@ -343,6 +343,7 @@ class PerplexityExecutiveAPI(ThreadedPerplexitySonarAPI):
              company_name: str,
              city: str,
              state: str,
+             address: str,
         ) -> dict:
 
         system_role = {
@@ -352,7 +353,8 @@ class PerplexityExecutiveAPI(ThreadedPerplexitySonarAPI):
         query = EXECUTIVE_QUERY.format(
             company_name=company_name,
             city=city,
-            state=state
+            state=state,
+            address=address
         )
 
         response = super().execute_query(

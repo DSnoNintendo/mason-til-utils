@@ -165,6 +165,7 @@ You are an AI assistant that helps find information about business owners & exec
         company_name: string,
         city: string,
         state: string
+        address:
     </json>
 </request_format>
 """
@@ -174,6 +175,7 @@ EXECUTIVE_QUERY = """
     company_name: {company_name},
     city: {city},
     state: {state}
+    address: {address}
 </json>
 """
 
@@ -181,14 +183,17 @@ INDUSTRY_CLASSIFICATION_JSON_FORMAT = """
     {{
         "1" : {{
                 "NAICS": string - naics_code or null,
+                "NAICS_Definition: string - meaning of naics code
                 "industry_code": string - industry_code or null
         }},
         "2" : {{
                 "NAICS": string - naics_code or null,
+                "NAICS_Definition: string - meaning of naics code
                 "industry_code": string - industry_code or null
         }},
         "3" : {{
                 "NAICS": string - naics_code or null,
+                "NAICS_Definition: string - meaning of naics code
                 "industry_code": string - industry_code or null
         }},
     }}
