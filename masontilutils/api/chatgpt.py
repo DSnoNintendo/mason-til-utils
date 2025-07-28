@@ -400,7 +400,7 @@ class ChatGPTIndustryClassificationAPI(ThreadedChatGPTAPI):
             response = self.execute_query(
                 model="gpt-4.1",
                 messages=messages,
-                max_tokens=100,  # We only need a short response
+                max_tokens=200,  # We only need a short response
                 temperature=0.0,  # Ensure consistent responses
                 response_format={"type": "text"}  # Ensure we get text response
             )
@@ -411,7 +411,9 @@ class ChatGPTIndustryClassificationAPI(ThreadedChatGPTAPI):
 
             # Extract and validate the response
             answer = response["choices"][0]["message"]["content"].strip()
+            print(answer)
             json_string = extract_json_substring(answer)
+        
 
             api_res: dict = json.loads(json_string)
             for d in api_res.values():

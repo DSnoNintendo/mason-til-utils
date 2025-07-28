@@ -224,11 +224,12 @@ INDUSTRY_CLASSIFICATION_SYSTEM_MESSAGE = f"""
 
 <rules>
     1. Ensure differentiation between goods, services, IT goods & services, and professional services based on standard industry classification definitions
+    2. Each NAICS code should she be mapped to one of the above industry codes. 
     2. Prioritize accuracy. Given descriptions do not necessarily need to correspond with given industry codes.
-    3. Industry codes should not be repeated. If a NAICS code corresponds with an industry code that has already been used, don't include in the response. 
     4. Only assign other, if no industry codes have been assigned
-    5. Trades are not professional services. Do not assign NAICS codes in these instances.
-    6. Goods and/or services imply a company sells to an end-user. Manufacturers may not always be goods or services.
+    6. If an industry code has already been assigned in an earlier JSON item, similar naics codes (first 4 digits) should be left out of the final output
+    7. Trades are not professional services. Do not assign NAICS codes in these instances.
+    8. Goods and/or services imply a company sells to an end-user. Manufacturers may not always be goods or services.
 </rules>
 
 """
