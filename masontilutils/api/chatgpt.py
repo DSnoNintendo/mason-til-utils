@@ -404,7 +404,7 @@ class ChatGPTIndustryClassificationAPI(ThreadedChatGPTAPI):
             response = self.execute_query(
                 model="gpt-4.1",
                 messages=messages,
-                max_tokens=200,  # We only need a short response
+                max_tokens=300,  # We only need a short response
                 temperature=0.0,  # Ensure consistent responses
                 response_format={"type": "text"}  # Ensure we get text response
             )

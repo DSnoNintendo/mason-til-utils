@@ -183,17 +183,17 @@ INDUSTRY_CLASSIFICATION_JSON_FORMAT = """
     {{
         "1" : {{
                 "NAICS": string - naics_code or null,
-                "NAICS_Definition: string - meaning of naics code,
+                "NAICS_Definition: string - meaning of naics code (10 words or less),
                 "industry_code": string - industry_code or null
         }},
         "2" : {{
                 "NAICS": string - naics_code or null,
-                "NAICS_Definition: string - meaning of naics code,
+                "NAICS_Definition: string - meaning of naics code (10 words or less),
                 "industry_code": string - industry_code or null
         }},
         "3" : {{
                 "NAICS": string - naics_code or null,
-                "NAICS_Definition: string - meaning of naics code,
+                "NAICS_Definition: string - meaning of naics code (10 words or less),
                 "industry_code": string - industry_code or null
         }},
     }}
