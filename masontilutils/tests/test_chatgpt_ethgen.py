@@ -26,7 +26,8 @@ class TestChatGPTEthGenAPI(unittest.TestCase):
             '2_ryan pritchard.jpg': {"ethnicity": Ethnicity.EUROPE.value, "sex": Sex.MALE.value},
             '3_michelle lee.jpg': {"ethnicity": Ethnicity.EAST_ASIA.value, "sex": Sex.FEMALE.value},
             '4_timothy walker.jpg': {"ethnicity": Ethnicity.AFRICA.value, "sex": Sex.MALE.value},
-            '5_sahil faroukie.jpg': {"ethnicity": Ethnicity.WEST_ASIA.value, "sex": Sex.MALE.value}
+            '5_sahil faroukie.jpg': {"ethnicity": Ethnicity.WEST_ASIA.value, "sex": Sex.MALE.value},
+            '6_kai finau.jpg': {"ethnicity": Ethnicity.PACIFIC_ISLANDS.value, "sex": Sex.MALE.value}
         }
             
 

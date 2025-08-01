@@ -22,6 +22,7 @@ class Region(Enum):
     SOUTH_AMERICA = "South America"
     AUSTRALIA = "Australia"
     ANTARCTICA = "Antarctica"
+    PACIFIC_ISLANDS = "Pacific Islands"
 
 class Ethnicity(Enum):
     MIDDLE_EAST = "Middle Eastern"
@@ -36,6 +37,7 @@ class Ethnicity(Enum):
     SOUTH_AMERICA = "Latino"
     AUSTRALIA = "Caucasian"
     ANTARCTICA = "Caucasian"
+    PACIFIC_ISLANDS = "Pacific Islander"
 
 class Sex(Enum):
     MALE = "Male"
@@ -189,6 +191,8 @@ class ChatGPTEthGenAPI(ThreadedChatGPTAPI):
             return Ethnicity.CENTRAL_ASIA.value
         elif region == Region.ANTARCTICA:
             return Ethnicity.ANTARCTICA.value
+        elif region == Region.PACIFIC_ISLANDS:
+            return Ethnicity.PACIFIC_ISLANDS.value
         else:
             return "None"
         
