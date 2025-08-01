@@ -189,7 +189,10 @@ class DBDaemon:
         while True:
             if len(self.shared_data["queries"]) > 0:
                 entry = self.shared_data["queries"].pop(0) 
-                self.execute_query(entry)
+                try:
+                    self.execute_query(entry)
+                except:
+                    pass
             else:
                 time.sleep(0.2)
 
