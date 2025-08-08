@@ -88,6 +88,7 @@ DESCRIPTION_OUTPUT_SYSTEM_MESSAGE = f"""
         business name: string
         state: string
         city: string
+        address: string
     </request_format>
 
     <response_json>
@@ -107,6 +108,7 @@ DESCRIPTION_QUERY = (
     "business name: {company_name}"
     "state: {state}"
     "city: {city}"
+    "address: {address}"
 )
 
 NAICS_CODE_QUERY_DESCRIPTION = (

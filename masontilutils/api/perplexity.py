@@ -264,6 +264,7 @@ class PerplexityBusinessDescAPI(ThreadedPerplexitySonarAPI):
              company_name: str,
              city: str,
              state: str,
+             address: str,
         ) -> str | None:
 
         system_role = {"role": "system", "content": DESCRIPTION_OUTPUT_SYSTEM_MESSAGE}
@@ -271,7 +272,8 @@ class PerplexityBusinessDescAPI(ThreadedPerplexitySonarAPI):
         query = DESCRIPTION_QUERY.format(
             company_name=company_name,
             city=city,
-            state=state
+            state=state,
+            address=address
         )
 
         response = super().execute_query(

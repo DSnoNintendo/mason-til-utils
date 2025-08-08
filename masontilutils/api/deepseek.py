@@ -173,6 +173,7 @@ class DeepseekBusinessDescriptionAPI(ThreadedDeepseekR1API):
              company_name: str,
              city: str,
              state: str,
+             address: str,
              ) -> list[str] | None:
 
         system_role = {"role": "system", "content": DESCRIPTION_OUTPUT_SYSTEM_MESSAGE}
@@ -180,7 +181,8 @@ class DeepseekBusinessDescriptionAPI(ThreadedDeepseekR1API):
         query = DESCRIPTION_QUERY.format(
             company_name=company_name,
             city=city,
-            state=state
+            state=state,
+            address=address
         )
 
         response = super().execute_query(
