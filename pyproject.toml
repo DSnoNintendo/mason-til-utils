@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mason-til-utils"
-version = "1.9.8"
+version = "1.9.9"
 description = "utilities for development of applications for Mason Tilman & Associates"
 authors = ["Daryl Stronge"]
 readme = "README.md"
