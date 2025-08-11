@@ -33,7 +33,8 @@ def clean_deep_research_text(text):
     return text.strip()
 
 def extract_json_substring(text: str) -> str:
-    """Extract a JSON substring starting from the first '{' or '[' character."""
+    """Extract a JSON substring starting from the first '{' or '[' character.
+    """
     start_idx = -1
     for i, char in enumerate(text):
         if char in '{[':
@@ -55,5 +56,16 @@ def extract_json_substring(text: str) -> str:
             if (char == '}' and stack[-1] == '{') or (char == ']' and stack[-1] == '['):
                 stack.pop()
                 if not stack:  # Found matching end bracket
-                    return text[start_idx:i+1]
+                    json_str = text[start_idx:i+1]
+                    
+                    # Handle double brace edge case: {{...}}
+                    if json_str.startswith('{{') and json_str.endswith('}}'):
+                        # Extract inner JSON by removing outer braces
+                        inner_json = json_str[1:-1]
+                        # Verify it's valid JSON by checking it starts and ends with braces/brackets
+                        if (inner_json.startswith('{') and inner_json.endswith('}')) or \
+                           (inner_json.startswith('[') and inner_json.endswith(']')):
+                            return inner_json
+                    
+                    return json_str
     return ""
