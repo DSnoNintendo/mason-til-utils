@@ -1,38 +1,35 @@
-import ast
 import json
 import re
 import threading
 import time
-import requests
+import ast
+from typing import Any, Dict, List, Optional
 from requests.adapters import HTTPAdapter
-from urllib3.util import Retry
-from typing import Dict, Any, Optional
 
-from masontilutils.api.queries import DESCRIPTION_OUTPUT_SYSTEM_MESSAGE, DESCRIPTION_QUERY, NAICS_CODE_OUTPUT_MESSAGE, NAICS_CODE_QUERY_DESCRIPTION, NAICS_CODE_QUERY_CONTRACT
-from masontilutils.utils import clean_deep_research_text, extract_json_substring
+import requests
+from urllib3 import Retry
 
-
-class ThreadedDeepseekR1API:
+class ThreadedPerplexitySonarAPI:
     _session_lock = threading.Lock()
     _sessions = {}
-
+    
     def __init__(self, api_key: str):
         """
-        Initialize the Deepseek R1 API client
-        :param api_key: Your Deepseek API key
+        Initialize the Perplexity Sonar API client
+        :param api_key: Your Perplexity API key
         """
         self.api_key = api_key
-        self.base_url = "https://api.deepseek.com/v1/chat/completions"
+        self.base_url = "https://api.perplexity.ai/chat/completions"
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
-
+        
     @property
     def session(self):
         """Get or create a requests session for the current thread"""
         thread_id = threading.get_ident()
-
+        
         with self._session_lock:
             if thread_id not in self._sessions:
                 session = requests.Session()
@@ -46,31 +43,24 @@ class ThreadedDeepseekR1API:
                 session.mount("https://", adapter)
                 session.mount("http://", adapter)
                 self._sessions[thread_id] = session
-
+                
             return self._sessions[thread_id]
 
     def execute_query(
-            self,
-            query: str = None,
-            model: str = "deepseek-reasoner",
-            max_tokens: Optional[int] = 3000,
-            **additional_args
+        self,
+        query: str = None,
+        model: str = "sonar-pro",
+        max_tokens: Optional[int] = 2500,
+        temperature: float = 0.1,
+        **additional_args
     ) -> Dict[str, Any]:
-        """
-        Execute a query against the Deepseek R1 API
 
-        :param query: User query string
-        :param model: Model to use (default: deepseek-reasoner)
-        :param max_tokens: Maximum response tokens
-        :param temperature: Temperature parameter (0.0-1.0)
-        :param additional_args: Additional API parameters
-        :return: API response dictionary
-        """
         payload = {
             "model": model,
+            "temperature": temperature,
             **additional_args
         }
-
+        
         if query is not None:
             payload["messages"] = [{"role": "user", "content": query}]
         elif "messages" not in payload and "messages" not in additional_args:
@@ -129,74 +119,4 @@ class ThreadedDeepseekR1API:
         return {
             "error": "Max retries exceeded for rate limit",
             "status_code": 429
-        }
-
-
-
-class DeepseekNAICSCodeAPI(ThreadedDeepseekR1API):
-    def __init__(self, api_key: str):
-        super().__init__(api_key=api_key)
-
-    def format_response(self, response: str) -> list[str]:
-        json_string = clean_deep_research_text(response)
-        naics_codes = re.findall(r'\d{6}', json_string)
-        return naics_codes
-
-    def call(self,
-             description: str,
-             ) -> list[str] | None:
-
-        system_role = {"role": "system", "content": NAICS_CODE_OUTPUT_MESSAGE}
-
-        query = NAICS_CODE_QUERY_DESCRIPTION.format(
-            description=description
-        )
-
-        response = super().execute_query(
-            messages=[
-                system_role,
-                {"role": "user", "content": query}
-            ]
-        )
-        if "error" not in response:
-            answer = response["choices"][0]["message"]["content"]
-            return self.format_response(answer)
-        else:
-            print(f"Error: {response['error']}")
-            return None
-
-class DeepseekBusinessDescriptionAPI(ThreadedDeepseekR1API):
-    def __init__(self, api_key: str):
-        super().__init__(api_key=api_key)
-
-    def call(self,
-             company_name: str,
-             city: str,
-             state: str,
-             address: str,
-             ) -> list[str] | None:
-
-        system_role = {"role": "system", "content": DESCRIPTION_OUTPUT_SYSTEM_MESSAGE}
-
-        query = DESCRIPTION_QUERY.format(
-            company_name=company_name,
-            city=city,
-            state=state,
-            address=address
-        )
-
-        response = super().execute_query(
-            model="deepseek-chat",
-            messages=[
-                system_role,
-                {"role": "user", "content": query}
-            ]
-        )
-        if "error" not in response:
-            answer = response["choices"][0]["message"]["content"]
-            if "None" in answer:
-                return None
-            return clean_deep_research_text(answer)
-        else:
-            print(f"Error: {response['error']}")
-            return None
+        } 

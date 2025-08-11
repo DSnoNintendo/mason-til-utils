@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 import primp
 from time import sleep, time
 import undetected_chromedriver as uc
-from fuzzywuzzy import fuzz
 import random
 
 class DDGSearch:
@@ -98,10 +97,7 @@ class DuckDuckGoAPI:
             timeout=10,
             cookie_store=True,
             referer=True,
-            impersonate="random",
-            impersonate_os="random",
-            follow_redirects=False,
-            verify=True,
+            headers=self.headers
         )
 
     def execute_search(
@@ -111,31 +107,27 @@ class DuckDuckGoAPI:
             **additional_args
     ) -> List[Dict[str, Any]]:
         """
-        Execute a search query using DuckDuckGo
+        Execute a search against DuckDuckGo
 
         :param query: Search query string
-        :param max_results: Maximum number of results to return (default: 5)
+        :param max_results: Maximum number of results to return
         :param additional_args: Additional search parameters
         :return: List of search results
         """
         try:
-            # Construct the search URL with parameters
-            base_url = "https://duckduckgo.com/"
+            # Construct the search URL
             params = {
                 'q': query,
                 't': 'h_',
                 'ia': 'web'
             }
+            params.update(additional_args)
             
-            # Build the full URL with encoded parameters
-            full_url = f"{base_url}?{urlencode(params)}"
-            print(f"Requesting URL: {full_url}")
+            url = f"https://duckduckgo.com/?{urlencode(params)}"
             
             # Make the request
-            payload = self.client.get(
-                full_url,
-            )
-
+            payload = self.client.get(url)
+            
             # Parse the HTML response
             soup = BeautifulSoup(payload.text, 'html.parser')
             print(payload.text)
@@ -170,68 +162,4 @@ class DuckDuckGoAPI:
             return [{
                 "error": f"Search request failed: {str(e)}",
                 "status_code": getattr(e, 'status_code', None)
-            }]
-
-class DuckDuckGoLinkedInAPI():
-    def __init__(self):
-        self.api = DDGSearch()
-
-    def _is_linkedin_profile_url(self, url: str) -> bool:
-        return url.startswith("https://www.linkedin.com/in/")
-    
-    def _result_valid(self, result: Dict[str, Any], name: str, company_name: str) -> bool:
-        if not self._is_linkedin_profile_url(result['url']):
-            return False
-        # Use fuzzy matching to check company name and person name in title
-        title_lower = result['title'].lower()
-        if fuzz.partial_ratio(company_name.lower(), title_lower) < 70:
-            return False
-        if fuzz.partial_ratio(name.lower(), title_lower) < 70:
-            return False
-        
-        return True
-    
-    def clean_company_name(self, company_name: str) -> str:
-        company_name = company_name.lower()
-        company_name = company_name.replace("llc", "")
-        company_name = company_name.replace("inc", "")
-        company_name = company_name.replace("corp", "")
-        company_name = company_name.replace("corporation", "")
-        company_name = company_name.replace("llp", "")
-        company_name = company_name.replace("co", "")
-        company_name = company_name.replace("company", "")
-        company_name = company_name.replace("services", "")
-        company_name = company_name.replace("group", "")
-        company_name = company_name.replace("limited", "")
-
-        return company_name
-
-    def call(
-            self,
-            name: str,
-            company_name: str,
-    ) -> List[Dict[str, Any]]:
-        """
-        Search for LinkedIn profiles using DuckDuckGo
-
-        :param name: Name of the person
-        :param company_name: Name of the company
-        :return: List of search results
-        """
-        company_name = self.clean_company_name(company_name)
-
-        queries = [
-            f'"{name}" "{company_name}" site:linkedin.com',
-            f'{name} {company_name} site:linkedin.com',
-        ]
-
-
-        for query in queries:
-            results = self.api.search(query)
-
-            for result in results:
-                if self._result_valid(result, name, company_name):
-                    return result['url']
-
-        return None
-
+            }] 

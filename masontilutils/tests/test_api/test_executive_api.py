@@ -4,7 +4,7 @@ import pandas as pd
 from pathlib import Path
 from fuzzywuzzy import fuzz
 from masontilutils.api.perplexity import PerplexityExecutiveAPI
-from masontilutils.api.queries import PUBLICALLY_TRADED_IDENTIFIER
+from masontilutils.api.queries.ethgen import PUBLICALLY_TRADED_IDENTIFIER
 
 class TestPerplexityExecutiveAPI(unittest.TestCase):
     @classmethod

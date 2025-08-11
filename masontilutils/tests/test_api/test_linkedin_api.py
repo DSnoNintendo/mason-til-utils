@@ -2,19 +2,14 @@ import os
 import unittest
 import pandas as pd
 from pathlib import Path
-from masontilutils.api.perplexity import PerplexitySonarLinkedInAPI
+from masontilutils.api.duckduckgo import DuckDuckGoLinkedInAPI
 
-class TestPerplexitySonarLinkedInAPI(unittest.TestCase):
+class TestDuckDuckGoLinkedInAPI(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Set up test environment before running tests"""
-        # Get API key from environment variable
-        cls.api_key = os.getenv('PERPLEXITY_API_KEY')
-        if not cls.api_key:
-            raise ValueError("PERPLEXITY_API_KEY environment variable not set")
-
-        # Create API instance
-        cls.api = PerplexitySonarLinkedInAPI(cls.api_key)
+        # Create API instance (no API key needed for DuckDuckGo)
+        cls.api = DuckDuckGoLinkedInAPI()
 
         # Set up test data directory
         cls.test_data_dir = Path(__file__).parent / 'test_data'
@@ -44,20 +39,16 @@ class TestPerplexitySonarLinkedInAPI(unittest.TestCase):
                     # Get LinkedIn profile
                     result = self.api.call(
                         name=row['contact'],
-                        company_name=row['company_name'],
-                        city=row['city'],
-                        state=row['state']
+                        company_name=row['company_name']
                     )
-
 
                     # Verify we got a valid LinkedIn URL if a result was found
-  
                     print(result)
-                    self.assertIn('url', result)
-                    self.assertTrue(
-                        result['url'].startswith('https://www.linkedin.com/in/'),
-                        f"Invalid LinkedIn URL format: {result['url']}"
-                    )
+                    if result:
+                        self.assertTrue(
+                            result.startswith('https://www.linkedin.com/in/'),
+                            f"Invalid LinkedIn URL format: {result}"
+                        )
 
 if __name__ == '__main__':
     unittest.main() 
