@@ -33,8 +33,7 @@ class ThreadedChatGPTAPI:
     def execute_query(
             self,
             query: str = None,
-            model: str = "o3",
-            max_tokens: Optional[int] = 100,
+            model: str = "gpt-5",
             **additional_args
     ) -> Dict[str, Any]:
         """
@@ -56,7 +55,6 @@ class ThreadedChatGPTAPI:
             response = self.client.chat.completions.create(
                 model=model,
                 messages=messages,
-                max_tokens=max_tokens,
                 **additional_args
             )
             

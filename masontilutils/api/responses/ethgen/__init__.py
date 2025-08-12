@@ -1,0 +1,1 @@
+# Responses for ChatGPT EthGen APIs 
