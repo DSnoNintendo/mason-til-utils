@@ -4,7 +4,7 @@ import pandas as pd
 from pathlib import Path
 from fuzzywuzzy import fuzz
 from masontilutils.api.perplexity import PerplexityExecutiveAPI
-from masontilutils.api.queries.ethgen import PUBLICALLY_TRADED_IDENTIFIER
+from masontilutils.api.responses.executive.executive import ExecutiveResponse
 
 class TestPerplexityExecutiveAPI(unittest.TestCase):
     @classmethod
@@ -34,12 +34,15 @@ class TestPerplexityExecutiveAPI(unittest.TestCase):
     
     def test_publically_traded(self):
         print("test_publically_traded")
-        result = self.api.call(
+        result: ExecutiveResponse = self.api.call(
                     company_name="Uber",
                     city="San Francisco",
-                    state="CA"
+                    state="CA",
+                    address="1455 Market St"
                 )
-        self.assertEqual(result, PUBLICALLY_TRADED_IDENTIFIER)
+        self.assertIsNotNone(result)
+        self.assertTrue(result.is_publicly_traded)
+        self.assertEqual(len(result.executives), 0)
 
 
     def test_executive_matching(self):
@@ -64,12 +67,12 @@ class TestPerplexityExecutiveAPI(unittest.TestCase):
                 break
             with self.subTest(company=row['company_name']):
                 # Get API result
-                result = self.api.call(
+                result: ExecutiveResponse = self.api.call(
                     company_name=row['company_name'],
                     city=row['city'],
-                    state=row['state']
+                    state=row['state'],
+                    address=row.get('address', '')
                 )
-
 
                 # If we have a contact in the CSV file, compare with API result
                 if pd.notna(row['contact']):
@@ -77,30 +80,30 @@ class TestPerplexityExecutiveAPI(unittest.TestCase):
                         result,
                         f"No executive found for {row['company_name']}"
                     )
-                    if result:
+                    if result and not result.is_publicly_traded and not result.is_none:
                         print("result:")
                         print(result)
                         self.assertGreater(
-                            len(result),
+                            len(result.executives),
                             0,
                             f"No executives found for {row['company_name']}"
                         )
                         self.assertTrue(
                             any(
-                                self.get_similarity(result_dict['name'], row['contact']) >= self.MIN_SIMILARITY
-                                for result_dict in result
+                                self.get_similarity(exec_info.name, row['contact']) >= self.MIN_SIMILARITY
+                                for exec_info in result.executives
                             )
                         )
                         self.assertTrue(
                             any(
-                                result_dict['role']
-                                for result_dict in result
+                                exec_info.role
+                                for exec_info in result.executives
                             )
                         )
 
                         # Verify we got a title
                         self.assertIsNotNone(
-                            result[0]['role'],
+                            result.executives[0].role,
                             f"No title found for {row['company_name']}"
                         ) 
 

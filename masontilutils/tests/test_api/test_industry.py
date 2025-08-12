@@ -2,10 +2,6 @@ import os
 import unittest
 from pathlib import Path
 from masontilutils.api.chatgpt import ChatGPTEthGenAPI, ChatGPTGenderAPI, ChatGPTIndustryClassificationAPI
-from masontilutils.api.queries.enums import Ethnicity, Sex
-
-
-
 
 class TestIndustryClassificationAPI(unittest.TestCase):
     @classmethod
