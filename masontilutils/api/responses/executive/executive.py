@@ -6,7 +6,7 @@ from masontilutils.api.queries.ethgen import (
     EXECUTIVE_NONE_IDENTIFIER,
     PUBLICALLY_TRADED_IDENTIFIER
 )
-from masontilutils.utils import extract_json_substring
+from masontilutils.utils import extract_json_substring, clean_deep_research_text
 
 @dataclass
 class ExecutiveInfo:
@@ -42,23 +42,25 @@ def build_executive_response(answer: str) -> ExecutiveResponse:
     Convert raw API response text into a normalized ExecutiveResponse object.
     Handles special cases for publicly traded companies and no executives found.
     """
+
+    api_response = extract_json_substring(clean_deep_research_text(answer))
+
     # Check for special identifiers first
-    if EXECUTIVE_NONE_IDENTIFIER in answer:
+    if EXECUTIVE_NONE_IDENTIFIER in api_response:
         return ExecutiveResponse(executives=[], is_none=True)
     
-    if PUBLICALLY_TRADED_IDENTIFIER in answer:
+    if PUBLICALLY_TRADED_IDENTIFIER in api_response:
         return ExecutiveResponse(executives=[], is_publicly_traded=True)
     
     # Try to extract and parse JSON
     try:
-        json_string = extract_json_substring(answer)
-        if not json_string:
+        if not api_response:
             return ExecutiveResponse(executives=[], is_none=True)
             
-        results = json.loads(json_string)
+        api_json = json.loads(api_response)
         
         executives = []
-        for key, data in results.items():
+        for key, data in api_json.items():
             if isinstance(data, dict) and "name" in data and "role" in data:
                 executives.append(ExecutiveInfo(
                     name=data["name"],
@@ -70,4 +72,6 @@ def build_executive_response(answer: str) -> ExecutiveResponse:
         
     except Exception as e:
         print(f"Error parsing executive data: {e}")
+        import traceback
+        traceback.print_exc()
         return ExecutiveResponse(executives=[], is_none=True) 

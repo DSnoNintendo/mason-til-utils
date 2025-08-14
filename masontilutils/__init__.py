@@ -1,5 +1,6 @@
 from masontilutils.api import *
 from masontilutils.service import *
+from masontilutils.handler import *
 from masontilutils.db import *
 from masontilutils.utils import *
 
