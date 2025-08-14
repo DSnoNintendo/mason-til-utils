@@ -86,9 +86,18 @@ class LinkedInEthGenService:
         
     
     def call(self, company_name: str, city: str, state: str, address: str) -> LinkedInEthGenResponse | None:
+        print(f"========== LinkedIn EthGen Service Call Started ==========")
+        print(f"Company: {company_name}")
+        print(f"Location: {city}, {state}")
+        print(f"Address: {address}")
+        
         request = ServiceRequest(company_name, city, state, address)
+        print(f"Service Request ID: {request.id}")
 
         # Get executive information
+        print(f"\n--- Step 1: Fetching Executive Information ---")
+        print(f"Calling Perplexity Executive API...")
+        
         executive_response: ExecutiveResponse = self.executive_api.call(
             company_name=company_name,
             city=city, 
@@ -97,65 +106,153 @@ class LinkedInEthGenService:
         )
 
         if not executive_response or executive_response.is_none:
+            print(f"No executive response received or response is empty")
+            print(f"Returning None - no data to process")
             return None
+
+        print(f"Executive API response received")
+        print(f"Is Publicly Traded: {executive_response.is_publicly_traded}")
+        print(f"Number of Executives Found: {len(executive_response.executives)}")
 
         # if company is publicly traded, set ethnicity to C
         if executive_response.is_publicly_traded:
+            print(f"\n--- Publicly Traded Company Detected ---")
+            print(f"Setting ethnicity to 'C' (Corporate/Publicly Traded)")
             request.response.is_publicly_traded = True
             request.response.ethnicity = "C"
+            print(f"Processing complete for publicly traded company")
+            print(f"========== LinkedIn EthGen Service Call Completed ==========\n")
             return request.response 
         
         # Convert API response executives to service executives
         if len(executive_response.executives) > 0:
+            print(f"\n--- Step 2: Processing {len(executive_response.executives)} Executive(s) ---")
             request.response.executive_found = True
+            
             if len(executive_response.executives) > 1:
                 request.response.multiple_executives = True
-            for api_exec in executive_response.executives:
+                print(f"Multiple executives detected - will process all and consolidate results")
+            else:
+                print(f"Single executive detected")
+                
+            for i, api_exec in enumerate(executive_response.executives, 1):
+                print(f"Executive {i}: {api_exec.name} ({api_exec.role})")
                 request.response.executives.append(self.create_executive_info(api_exec))
         else:
+            print(f"No executives found in response - returning basic response")
+            print(f"========== LinkedIn EthGen Service Call Completed ==========\n")
             return request.response
 
-
-        for executive in request.response.executives:
+        print(f"\n--- Step 3: LinkedIn Profile and Image Analysis ---")
+        for i, executive in enumerate(request.response.executives, 1):
+            print(f"\n>> Processing Executive {i}: {executive.name}")
+            
             # get linkedin url
+            print(f"   Searching for LinkedIn profile...")
             linkedin_url = self.get_linkedin(executive.name, company_name)
+            
             if linkedin_url:
+                print(f"   LinkedIn profile found: {linkedin_url}")
                 executive.linkedin_url = linkedin_url
+                
                 # get profile picture
+                print(f"   Attempting to extract profile picture...")
                 if profile_picture := self.browser.get_profile_picture_from_url(linkedin_url):
+                    print(f"   Profile picture extracted successfully")
                     executive.picture_url = profile_picture
 
                     # get ethnicity and gender
+                    print(f"   Analyzing ethnicity and gender from image...")
                     ethgen_response: EthGenResponse | None = self.ethgen_api.call(profile_picture)
                     if ethgen_response:
                         executive.ethnicity = ethgen_response.ethnicity
                         executive.gender = ethgen_response.sex
+                        print(f"   Image analysis complete - Ethnicity: {executive.ethnicity}, Gender: {executive.gender}")
                     else:
                         # get gender from name
-                        print(f"No ethnicity or gender found for {executive.name}")
+                        print(f"   No ethnicity or gender found from image for {executive.name}")
+                        print(f"   Falling back to name-based gender detection...")
                         gender_response: GenderResponse | None = self.gender_api.call(executive.name)
                         if gender_response:
                             executive.gender = gender_response.sex
+                            print(f"   Gender detected from name: {executive.gender}")
                         else:
-                            print(f"No gender found for {executive.name}")
+                            print(f"   No gender found for {executive.name}")
                 else:
-                    print(f"No profile picture found for {executive.name}")
+                    print(f"   No profile picture found for {executive.name}")
+                    print(f"   Attempting name-based gender detection...")
+                    gender_response: GenderResponse | None = self.gender_api.call(executive.name)
+                    if gender_response:
+                        executive.gender = gender_response.sex
+                        print(f"   Gender detected from name: {executive.gender}")
+                    else:
+                        print(f"   No gender found for {executive.name}")
+            else:
+                print(f"   No LinkedIn profile found for {executive.name}")
+                print(f"   Attempting name-based gender detection...")
+                gender_response: GenderResponse | None = self.gender_api.call(executive.name)
+                if gender_response:
+                    executive.gender = gender_response.sex
+                    print(f"   Gender detected from name: {executive.gender}")
+                else:
+                    print(f"   No gender found for {executive.name}")
 
+        print(f"\n--- Step 4: Consolidating Results ---")
         # if multiple executives, check if ethnicity and gender are the same
         if request.response.multiple_executives:
-            if any(executive.ethnicity != request.response.executives[0].ethnicity for executive in request.response.executives):
+            print(f"Processing multiple executives for consistency...")
+            
+            # Check ethnicity consistency
+            ethnicities = [exec.ethnicity for exec in request.response.executives if exec.ethnicity]
+            unique_ethnicities = set(ethnicities)
+            
+            if len(unique_ethnicities) > 1:
                 request.response.multiple_ethnicities = True
+                request.response.ethnicity = "Non-Minority"
+                print(f"   Multiple ethnicities detected: {unique_ethnicities}")
+                print(f"   Setting consolidated ethnicity to: Non-Minority")
+            elif len(unique_ethnicities) == 1:
+                request.response.ethnicity = list(unique_ethnicities)[0]
+                print(f"   Consistent ethnicity across executives: {request.response.ethnicity}")
             else:
-                request.response.ethnicity = request.response.executives[0].ethnicity
-            if any(executive.gender != request.response.executives[0].gender for executive in request.response.executives):
+                print(f"   No ethnicity data available for any executive")
+                
+            # Check gender consistency  
+            genders = [exec.gender for exec in request.response.executives if exec.gender]
+            unique_genders = set(genders)
+            
+            if len(unique_genders) > 1:
                 request.response.multiple_genders = True
                 request.response.gender = "Z"
+                print(f"   Multiple genders detected: {unique_genders}")
+                print(f"   Setting consolidated gender to: Z")
+            elif len(unique_genders) == 1:
+                request.response.gender = list(unique_genders)[0]
+                print(f"   Consistent gender across executives: {request.response.gender}")
             else:
-                request.response.gender = request.response.executives[0].gender
+                print(f"   No gender data available for any executive")
         else:
-            request.response.ethnicity = request.response.executives[0].ethnicity
-            request.response.gender = request.response.executives[0].gender
+            print(f"Single executive - using individual results")
+            if request.response.executives:
+                request.response.ethnicity = request.response.executives[0].ethnicity
+                request.response.gender = request.response.executives[0].gender
+                print(f"   Final ethnicity: {request.response.ethnicity}")
+                print(f"   Final gender: {request.response.gender}")
 
+        print(f"\n--- Final Results Summary ---")
+        print(f"Company: {company_name}")
+        print(f"Executives Found: {len(request.response.executives)}")
+        print(f"Multiple Executives: {request.response.multiple_executives}")
+        print(f"Multiple Ethnicities: {request.response.multiple_ethnicities}")
+        print(f"Multiple Genders: {request.response.multiple_genders}")
+        print(f"Final Ethnicity: {request.response.ethnicity}")
+        print(f"Final Gender: {request.response.gender}")
+        
+        for i, exec in enumerate(request.response.executives, 1):
+            print(f"Executive {i}: {exec.name} ({exec.role}) - LinkedIn: {'Yes' if exec.linkedin_url else 'No'}, Image: {'Yes' if exec.picture_url else 'No'}, Ethnicity: {exec.ethnicity or 'N/A'}, Gender: {exec.gender or 'N/A'}")
+
+        print(f"Processing complete!")
+        print(f"========== LinkedIn EthGen Service Call Completed ==========\n")
         return request.response
     
     def get_linkedin(self, name: str, company_name: str) -> str | None:

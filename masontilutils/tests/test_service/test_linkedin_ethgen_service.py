@@ -243,7 +243,6 @@ class TestLinkedInEthGenService(unittest.TestCase):
         self.assertEqual(executive.name, "John Doe")
         self.assertEqual(executive.picture_url, "")
         self.assertEqual(executive.ethnicity, "")
-        self.assertEqual(executive.gender, "")
 
     def test_call_single_executive_no_profile_picture(self):
         """Test handling when LinkedIn profile exists but no profile picture"""
