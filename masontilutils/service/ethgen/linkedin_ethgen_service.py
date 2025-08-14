@@ -15,13 +15,15 @@ from masontilutils.api.responses.executive.executive import ExecutiveResponse, E
 class ServiceExecutiveInfo:
     name: str
     role: str
-    linkedin_url: str
-    ethnicity: str
-    gender: str
-    sources: List[str]
+    linkedin_url: str | None = None
+    picture_url: str | None = None
+    ethnicity: str | None = None
+    gender: str | None = None
+    sources: List[str] = field(default_factory=list)
 
 @dataclass
-class ServiceResponse:
+class LinkedInEthGenResponse:
+    company_name: str
     executives: List[ServiceExecutiveInfo] = field(default_factory=list)
     ethnicity: str | None = None
     gender: str | None = None
@@ -41,7 +43,7 @@ class ServiceRequest:
         self.state = state
         self.address = address
 
-        self.response = ServiceResponse()
+        self.response = LinkedInEthGenResponse(company_name=company_name)
 
 
 class LinkedInEthGenService:
@@ -68,6 +70,7 @@ class LinkedInEthGenService:
             role=executive.role,
             linkedin_url="",
             ethnicity="",
+            picture_url="",
             gender="",  
             sources=executive.sources
         )
@@ -82,7 +85,7 @@ class LinkedInEthGenService:
             self.browser.close()
         
     
-    def call(self, company_name: str, city: str, state: str, address: str) -> ServiceResponse | None:
+    def call(self, company_name: str, city: str, state: str, address: str) -> LinkedInEthGenResponse | None:
         request = ServiceRequest(company_name, city, state, address)
 
         # Get executive information
@@ -100,7 +103,7 @@ class LinkedInEthGenService:
         if executive_response.is_publicly_traded:
             request.response.is_publicly_traded = True
             request.response.ethnicity = "C"
-            return request.response
+            return request.response 
         
         # Convert API response executives to service executives
         if len(executive_response.executives) > 0:
@@ -120,7 +123,7 @@ class LinkedInEthGenService:
                 executive.linkedin_url = linkedin_url
                 # get profile picture
                 if profile_picture := self.browser.get_profile_picture_from_url(linkedin_url):
-                    executive.profile_picture = profile_picture
+                    executive.picture_url = profile_picture
 
                     # get ethnicity and gender
                     ethgen_response: EthGenResponse | None = self.ethgen_api.call(profile_picture)

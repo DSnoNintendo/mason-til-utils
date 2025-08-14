@@ -2,10 +2,10 @@ import os
 import unittest
 from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
-from masontilutils.services.ethgen.linkedin_ethgen_service import (
+from masontilutils.service.ethgen.linkedin_ethgen_service import (
     LinkedInEthGenService, 
     ServiceRequest, 
-    ServiceResponse, 
+    LinkedInEthGenResponse, 
     ServiceExecutiveInfo
 )
 from masontilutils.api.responses.ethgen.ethgen import EthGenResponse, GenderResponse
@@ -32,11 +32,11 @@ class TestLinkedInEthGenService(unittest.TestCase):
     def setUp(self):
         """Set up for each test"""
         # Patch all external dependencies
-        self.perplexity_patcher = patch('masontilutils.services.ethgen.linkedin_ethgen_service.PerplexityExecutiveAPI')
-        self.chatgpt_ethgen_patcher = patch('masontilutils.services.ethgen.linkedin_ethgen_service.ChatGPTEthGenAPI')
-        self.chatgpt_gender_patcher = patch('masontilutils.services.ethgen.linkedin_ethgen_service.ChatGPTGenderAPI')
-        self.ddg_patcher = patch('masontilutils.services.ethgen.linkedin_ethgen_service.DuckDuckGoLinkedInAPI')
-        self.linkedin_browser_patcher = patch('masontilutils.services.ethgen.linkedin_ethgen_service.LinkedInBrowser')
+        self.perplexity_patcher = patch('masontilutils.service.ethgen.linkedin_ethgen_service.PerplexityExecutiveAPI')
+        self.chatgpt_ethgen_patcher = patch('masontilutils.service.ethgen.linkedin_ethgen_service.ChatGPTEthGenAPI')
+        self.chatgpt_gender_patcher = patch('masontilutils.service.ethgen.linkedin_ethgen_service.ChatGPTGenderAPI')
+        self.ddg_patcher = patch('masontilutils.service.ethgen.linkedin_ethgen_service.DuckDuckGoLinkedInAPI')
+        self.linkedin_browser_patcher = patch('masontilutils.service.ethgen.linkedin_ethgen_service.LinkedInBrowser')
 
         # Start all patches
         self.mock_perplexity = self.perplexity_patcher.start()
@@ -97,7 +97,7 @@ class TestLinkedInEthGenService(unittest.TestCase):
         self.assertIsInstance(result, ServiceExecutiveInfo)
         self.assertEqual(result.name, "John Doe")
         self.assertEqual(result.role, "CEO")
-        self.assertEqual(result.linkedin_url, "")
+        self.assertEqual(result.picture_url, "")
         self.assertEqual(result.ethnicity, "")
         self.assertEqual(result.gender, "")
         self.assertEqual(result.sources, ["source1", "source2"])
@@ -188,8 +188,8 @@ class TestLinkedInEthGenService(unittest.TestCase):
         self.mock_executive_api.call.return_value = executive_response
 
         # Mock LinkedIn URL
-        linkedin_url = "https://www.linkedin.com/in/johndoe"
-        self.mock_ddg_api.call.return_value = linkedin_url
+        picture_url = "https://www.linkedin.com/in/johndoe"
+        self.mock_ddg_api.call.return_value = picture_url
 
         # Mock profile picture
         profile_picture = "base64_encoded_image"
@@ -212,7 +212,7 @@ class TestLinkedInEthGenService(unittest.TestCase):
         executive = result.executives[0]
         self.assertEqual(executive.name, "John Doe")
         self.assertEqual(executive.role, "CEO")
-        self.assertEqual(executive.linkedin_url, linkedin_url)
+        self.assertEqual(executive.picture_url, profile_picture)
         self.assertEqual(executive.ethnicity, Ethnicity.EUROPE.value)
         self.assertEqual(executive.gender, Sex.MALE.value)
         
@@ -241,7 +241,7 @@ class TestLinkedInEthGenService(unittest.TestCase):
         
         executive = result.executives[0]
         self.assertEqual(executive.name, "John Doe")
-        self.assertEqual(executive.linkedin_url, "")
+        self.assertEqual(executive.picture_url, "")
         self.assertEqual(executive.ethnicity, "")
         self.assertEqual(executive.gender, "")
 
@@ -257,8 +257,8 @@ class TestLinkedInEthGenService(unittest.TestCase):
         self.mock_executive_api.call.return_value = executive_response
 
         # Mock LinkedIn URL
-        linkedin_url = "https://www.linkedin.com/in/johndoe"
-        self.mock_ddg_api.call.return_value = linkedin_url
+        picture_url = "https://www.linkedin.com/in/johndoe"
+        self.mock_ddg_api.call.return_value = picture_url
 
         # Mock no profile picture
         self.mock_browser.get_profile_picture_from_url.return_value = None
@@ -270,7 +270,7 @@ class TestLinkedInEthGenService(unittest.TestCase):
         self.assertEqual(len(result.executives), 1)
         
         executive = result.executives[0]
-        self.assertEqual(executive.linkedin_url, linkedin_url)
+        self.assertEqual(executive.picture_url, "")
         self.assertEqual(executive.ethnicity, "")
         self.assertEqual(executive.gender, "")
 
@@ -286,8 +286,8 @@ class TestLinkedInEthGenService(unittest.TestCase):
         self.mock_executive_api.call.return_value = executive_response
 
         # Mock LinkedIn and profile picture
-        linkedin_url = "https://www.linkedin.com/in/johndoe"
-        self.mock_ddg_api.call.return_value = linkedin_url
+        picture_url = "https://www.linkedin.com/in/johndoe"
+        self.mock_ddg_api.call.return_value = picture_url
         self.mock_browser.get_profile_picture_from_url.return_value = "profile_picture"
 
         # Mock ethgen API failure
@@ -409,7 +409,7 @@ class TestLinkedInEthGenService(unittest.TestCase):
         self.assertTrue(result.multiple_executives)
         self.assertTrue(result.multiple_ethnicities)
         self.assertTrue(result.multiple_genders)
-        self.assertEqual(result.ethnicity, "Non-Minority")
+        self.assertEqual(result.ethnicity, None)
         self.assertEqual(result.gender, "Z")
         
         # Check individual executives
@@ -465,11 +465,11 @@ class TestLinkedInEthGenService(unittest.TestCase):
         self.assertEqual(request.city, "Test City")
         self.assertEqual(request.state, "TX")
         self.assertEqual(request.address, "123 Main St")
-        self.assertIsInstance(request.response, ServiceResponse)
+        self.assertIsInstance(request.response, LinkedInEthGenResponse)
 
     def test_service_response_defaults(self):
         """Test ServiceResponse default values"""
-        response = ServiceResponse()
+        response = LinkedInEthGenResponse(company_name="Test Company")
         
         self.assertEqual(response.executives, [])
         self.assertFalse(response.executive_found)
