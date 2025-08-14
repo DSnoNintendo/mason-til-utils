@@ -33,7 +33,7 @@ def _normalize_str(value: Any) -> str:
     return str(value).strip().lower() if value is not None else ""
 
 
-def build_ethgen_response(api_res: Dict[str, Any]) -> EthGenResponse:
+def build_ethgen_response(api_res: Dict[str, Any]) -> EthGenResponse | None:
     """
     Convert raw API json into a normalized EthGenResponse object.
     Expected api_res keys: `region`, `sex` (case-insensitive content).
@@ -65,7 +65,12 @@ def build_ethgen_response(api_res: Dict[str, Any]) -> EthGenResponse:
         matched_sex = next((s for s in Sex if _normalize_str(s.value) == sex_text), None)
         sex_value = matched_sex.value if matched_sex else None
 
-    return EthGenResponse(ethnicity=ethnicity_value, sex=sex_value)
+    res = EthGenResponse(ethnicity=ethnicity_value, sex=sex_value)
+    if res.ethnicity is None and res.sex is None:
+        return None
+
+    return res
+
 
 
 def build_gender_response(api_res: Dict[str, Any]) -> GenderResponse:
@@ -78,4 +83,8 @@ def build_gender_response(api_res: Dict[str, Any]) -> GenderResponse:
         return GenderResponse(sex=None)
 
     matched_sex = next((s for s in Sex if _normalize_str(s.value) == sex_text), None)
-    return GenderResponse(sex=matched_sex.value if matched_sex else None) 
+
+    if matched_sex is None:
+        return None
+    
+    return GenderResponse(sex=matched_sex.value) 

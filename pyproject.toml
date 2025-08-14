@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "masontilutils"}]
 
 [tool.poetry.dependencies]
-python = ">=3.10"
+python = ">=3.12"
 sqlalchemy = ">=2.0.40,<3.0.0"
 pandas = ">=2.2.3,<3.0.0"
 urllib3 = ">=2.4.0,<3.0.0"
@@ -15,6 +15,7 @@ openai = "^1.77.0"
 fuzzywuzzy = "^0.18.0"
 undetected-chromedriver = "^3.5.5"
 pytest = "^8.4.1"
+linkedin-selenium = {git = "https://github.com/DSnoNintendo/LinkedInSelenium"}
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
