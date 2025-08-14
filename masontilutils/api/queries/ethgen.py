@@ -20,15 +20,15 @@ ETHGEN_SYSTEM_MESSAGE = {
 
     <request_format>
         <json>
-            image_path: string,
-            name: string,
+            "image_path": "string",
+            "name": "string",
         </json>
     </request_format>
 
     <response_format>
         <json>
-            sex: string,
-            region: string,
+            "sex": "string",
+            "region": "string",
         </json>
     </response_format>
     """
@@ -51,13 +51,13 @@ GENDER_SYSTEM_MESSAGE = {
 
     <request_format>
         <json>
-            name: string,
+            "name": "string",
         </json>
     </request_format>
 
     <response_format>
         <json>
-            sex: string,
+            "sex": "string",
         </json>
     </response_format>
 """
@@ -92,9 +92,9 @@ EXECUTIVE_RESPONSE_JSON_FORMAT = """
     {{
         1 :
             {{ 
-                name: string,
-                role: string,
-                sources: [https://link, https://link]
+                "name": "string",
+                "role": "string",
+                "sources": ["https://link", "https://link"]
                 }}
             }},
             ...
@@ -120,19 +120,19 @@ You are an AI assistant that helps find information about business owners & exec
 
 <request_format>
     <json>
-        company_name: string,
-        city: string,
-        state: string
-        address:
+        "company_name": "string",
+        "city": "string",
+        "state": "string"
+        "address": "string"
     </json>
 </request_format>
 """
 
 EXECUTIVE_QUERY = """
 <json>
-    company_name: {company_name},
-    city: {city},
-    state: {state}
-    address: {address}
+    "company_name": "{company_name}",
+    "city": "{city}",
+    "state": "{state}"
+    "address": "{address}"
 </json>
 """ 
