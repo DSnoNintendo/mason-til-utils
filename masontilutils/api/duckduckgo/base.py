@@ -4,14 +4,15 @@ from bs4 import BeautifulSoup
 import primp
 from time import sleep, time
 import undetected_chromedriver as uc
+from seleniumbase import Driver
 import random
 
 class DDGSearch:
     def __init__(self, headless: bool = True):
         try:
-            self.driver = uc.Chrome(
+            self.driver = Driver(
                 headless=headless,
-                use_subprocess=False
+                uc=True
             )
             self.driver.get("https://www.duckduckgo.com")
             self.last_request_time = 0
@@ -23,8 +24,9 @@ class DDGSearch:
         time_since_last_request = current_time - self.last_request_time
         
         if time_since_last_request < 5:  # If less than minimum wait time has passed
-            sleep_time = random.uniform(1, 5) - time_since_last_request
+            sleep_time = random.uniform(1.0, 10.0) - time_since_last_request
             if sleep_time > 0:
+                print(f"Sleeping for {sleep_time} seconds")
                 sleep(sleep_time)
         
         self.driver.get(url)

@@ -9,14 +9,14 @@ class TestDuckDuckGoAPI(unittest.TestCase):
     def test_company_linkedin_search_response(self):
         """Test that the company search API returns valid results."""
         response = self.api.call(
-            name="Lisa Rehurek",
-            company_name="RFP Success",
+            name="Andrew Dillard",
+            company_name="AD CONSTRUCTION EQUIPMENT, INC.",
         )
         
         # Assert response is not None
         self.assertIsNotNone(response)
 
-        self.assertEqual(response, "https://www.linkedin.com/in/lisarehurek")
+        self.assertEqual(response, "https://www.linkedin.com/in/andrewdillardconstructionequipmentdbe")
 
 
 

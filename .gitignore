@@ -5,3 +5,5 @@ __pycache__/
 *.pyw
 *.pyz
 *.pywz
+downloaded_files/
+.pytest_cache/
