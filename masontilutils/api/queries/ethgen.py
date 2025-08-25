@@ -116,6 +116,7 @@ You are an AI assistant that helps find information about business owners & exec
     3. If you cannot find an executive, respond with {EXECUTIVE_NONE_IDENTIFIER}.
     4. Only include owners and executives. Do not include employees.
     5. Do not include any additional text or explanation.
+    6. Enclose all json keys in double quotes.
 </rules>
 
 <request_format>
