@@ -78,6 +78,13 @@ class LinkedInEthGenResponseHandler:
         else:
             print(f"   >> No name data to process")
             
+        print(f"   >> Processing role...")
+        if query := self.handle_role(response, mta_uid):
+            queries.append(query)
+            print(f"   >> Added role query: {response.executives[0].role if response.executives else 'N/A'}")
+        else:
+            print(f"   >> No role data to process")
+            
         print(f"   >> Processing ethnicity...")
         if query := self.handle_ethnicity(response, mta_uid):
             queries.append(query)
@@ -165,6 +172,12 @@ class LinkedInEthGenResponseHandler:
             return f"UPDATE { self.table_name} SET contact = '{self.escape(response.executives[0].name)}' WHERE MTAuID = '{mta_uid}'"
         else:
             return None
+        
+    def handle_role(self, response: LinkedInEthGenResponse, mta_uid: str) -> str | None:
+        if len(response.executives) > 0:
+            return f"UPDATE {self.table_name} SET role = '{self.escape(response.executives[0].role)}' WHERE MTAuID = '{mta_uid}'"
+        else:
+            return None
 
 
     # returns SQL query
@@ -226,6 +239,8 @@ class LinkedInEthGenResponseHandler:
                 print(f"Picture URL: {exec.picture_url or 'Not found'}")
                 print(f"Individual Ethnicity: {exec.ethnicity or 'Not found'}")
                 print(f"Individual Gender: {exec.gender or 'Not found'}")
+                print(f"Individual Role: {exec.role or 'Not found'}")
+                print(f"Individual Sources: {exec.sources or 'Not found'}")
             print(f"Calling handle_one_executive")
             queries = self.handle_one_executive(response, mta_uid)
             print(f"Generated {len(queries)} queries for single executive")
