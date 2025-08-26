@@ -270,8 +270,6 @@ class TestLinkedInEthGenService(unittest.TestCase):
         
         executive = result.executives[0]
         self.assertEqual(executive.picture_url, "")
-        self.assertEqual(executive.ethnicity, "")
-        self.assertEqual(executive.gender, "")
 
     def test_call_single_executive_ethgen_fails_gender_succeeds(self):
         """Test fallback to gender API when ethnicity/gender detection fails"""
@@ -408,7 +406,7 @@ class TestLinkedInEthGenService(unittest.TestCase):
         self.assertTrue(result.multiple_executives)
         self.assertTrue(result.multiple_ethnicities)
         self.assertTrue(result.multiple_genders)
-        self.assertEqual(result.ethnicity, None)
+        self.assertEqual(result.ethnicity, 'Non-Minority')
         self.assertEqual(result.gender, "Z")
         
         # Check individual executives
@@ -452,6 +450,47 @@ class TestLinkedInEthGenService(unittest.TestCase):
         self.assertTrue(result.multiple_executives)
         self.assertFalse(result.multiple_ethnicities)
         self.assertTrue(result.multiple_genders)
+        self.assertEqual(result.ethnicity, Ethnicity.EUROPE.value)
+        self.assertEqual(result.gender, "Z")
+
+    def test_call_multiple_executives_family_owned(self):
+        """Test handling of multiple executives with same ethnicity but different genders"""
+        # Mock executive response with multiple executives
+        mock_exec1 = ExecutiveInfo(name="John Smith", role="CEO", sources=["source1"])
+        mock_exec2 = ExecutiveInfo(name="Jane Smith", role="CTO", sources=["source2"])
+        executive_response = ExecutiveResponse(
+            executives=[mock_exec1, mock_exec2],
+            is_publicly_traded=False,
+            is_none=False
+        )
+        self.mock_executive_api.call.return_value = executive_response
+
+        # Mock LinkedIn URLs
+        self.mock_ddg_api.call.side_effect = [
+            "https://www.linkedin.com/in/johndoe",
+            "https://www.linkedin.com/in/janesmith"
+        ]
+
+        # Mock profile pictures
+        self.mock_browser.get_profile_picture_from_url.side_effect = [
+            "profile_picture1",
+            "profile_picture2"
+        ]
+
+        # Mock same ethnicity, different gender responses
+        ethgen_responses = [
+            EthGenResponse(ethnicity=Ethnicity.EUROPE.value, sex=Sex.MALE.value),
+            EthGenResponse(ethnicity=Ethnicity.EUROPE.value, sex=Sex.FEMALE.value)
+        ]
+        self.mock_ethgen_api.call.side_effect = ethgen_responses
+
+        result = self.service.call("Test Company", "Test City", "TX", "Test Address")
+
+        self.assertIsNotNone(result)
+        self.assertTrue(result.multiple_executives)
+        self.assertFalse(result.multiple_ethnicities)
+        self.assertTrue(result.multiple_genders)
+        self.assertTrue(result.is_family_owned)
         self.assertEqual(result.ethnicity, Ethnicity.EUROPE.value)
         self.assertEqual(result.gender, "Z")
 

@@ -46,9 +46,10 @@ class TestLinkedInEthGenResponseHandler(unittest.TestCase):
                 ethnicity TEXT,
                 gender TEXT,
                 ethgen_note TEXT,
-                linkedin_url TEXT,
-                picture_url TEXT,
-                sources TEXT
+                multiple_owners MEMO,
+                linkedin_url MEMO,
+                picture_url MEMO,
+                sources MEMO
             )"""
             self.db_manager.execute_query(create_table_query)
             
@@ -350,10 +351,10 @@ class TestLinkedInEthGenResponseHandler(unittest.TestCase):
         self.assertGreater(len(result), 1)
         
         # First query should be about multiple executives
-        self.assertIn("multiple owners found: John Doe (CEO), Jane Smith (CTO)", result[0])
+        self.assertIn("multiple owners", result[0])
         
         # Should include ethnicity and gender updates
-        note_query = f"""UPDATE {self.table_name} SET ethgen_note = 'multiple owners found: {executive1.name} ({executive1.role}), {executive2.name} ({executive2.role})' WHERE MTAuID = '{self.test_mta_uid}'"""
+        note_query = f"""UPDATE {self.table_name} SET ethgen_note = 'multiple owners' WHERE MTAuID = '{self.test_mta_uid}'"""
         gender_query = f"UPDATE {self.table_name} SET gender = 'Z' WHERE MTAuID = '{self.test_mta_uid}'"
         self.assertIn(note_query, result)
         self.assertIn(gender_query, result)
@@ -556,6 +557,7 @@ class TestLinkedInEthGenResponseHandler(unittest.TestCase):
             linkedin_url="",
             picture_url="",
             ethnicity="",
+            gender="M",
             sources=["LinkedIn"]
         )
         executive2 = ServiceExecutiveInfo(
@@ -563,6 +565,7 @@ class TestLinkedInEthGenResponseHandler(unittest.TestCase):
             role="CTO",
             linkedin_url="",
             ethnicity="",
+            gender="F",
             sources=["Website"]
         )
         
@@ -572,13 +575,14 @@ class TestLinkedInEthGenResponseHandler(unittest.TestCase):
             executive_found=True,
             multiple_executives=True,
             ethnicity="C",
-            gender="M"
+            gender="Z"
         )
         
         queries = self.handler.handle(response, self.test_mta_uid)
         
         # Execute the queries against the database
         for query in queries:
+            print(query)
             self.db_manager.execute_query(query)
         
         # Verify the data was updated correctly
@@ -587,11 +591,61 @@ class TestLinkedInEthGenResponseHandler(unittest.TestCase):
         record = result[0]
         
         # Should have multiple executives note
-        self.assertIn("multiple owners found:", record['ethgen_note'])
-        self.assertIn("John Doe (CEO)", record['ethgen_note'])
-        self.assertIn("Jane S'mith (CTO)", record['ethgen_note'])
+        self.assertIn("multiple owners", record['ethgen_note'])
+        self.assertIn("John Doe (CEO)", record['multiple_owners'])
+        self.assertIn("Jane S'mith (CTO)", record['multiple_owners'])
         self.assertEqual(record['ethnicity'], "C")
-        self.assertEqual(record['gender'], "M")
+        self.assertEqual(record['gender'], "Z")
+        self.assertEqual(record['sources'], "LinkedIn , Website")
+
+    def test_database_integration_family_owned(self):
+        """Integration test: Execute multiple executives queries against real database"""
+        executive1 = ServiceExecutiveInfo(
+            name="John Smith",
+            role="CEO",
+            linkedin_url="",
+            picture_url="",
+            ethnicity="",
+            gender="M",
+            sources=["LinkedIn"]
+        )
+        executive2 = ServiceExecutiveInfo(
+            name="Jane Smith",
+            role="CTO",
+            linkedin_url="",
+            ethnicity="",
+            gender="F",
+            sources=["Website"]
+        )
+        
+        response = LinkedInEthGenResponse(
+            company_name="Test Co",
+            executives=[executive1, executive2],
+            executive_found=True,
+            multiple_executives=True,
+            ethnicity="C",
+            gender="Z",
+            is_family_owned=True
+        )
+        
+        queries = self.handler.handle(response, self.test_mta_uid)
+        
+        # Execute the queries against the database
+        for query in queries:
+            print(query)
+            self.db_manager.execute_query(query)
+        
+        # Verify the data was updated correctly
+        result = self.db_manager.fetch_query(f"SELECT * FROM {self.table_name} WHERE MTAuID = '{self.test_mta_uid}'")
+        self.assertEqual(len(result), 1)
+        record = result[0]
+        
+        # Should have multiple executives note
+        self.assertIn("multiple owners, family owned", record['ethgen_note'])
+        self.assertIn("John Smith (CEO)", record['multiple_owners'])
+        self.assertIn("Jane Smith (CTO)", record['multiple_owners'])
+        self.assertEqual(record['ethnicity'], "C")
+        self.assertEqual(record['gender'], "Z")
         self.assertEqual(record['sources'], "LinkedIn , Website")
 
 

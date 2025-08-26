@@ -29,8 +29,20 @@ class LinkedInEthGenResponseHandler:
         multiple_executives = multiple_executives[:-2]
         print(f"   >> Executive list: {multiple_executives}")
 
-        note_query = f"UPDATE {self.table_name} SET ethgen_note = 'multiple owners found: {self.escape(multiple_executives)}' WHERE MTAuID = '{mta_uid}'"
+        
+
+        if response.is_family_owned:
+            ethgen_note = "multiple owners, family owned"
+        else:
+            ethgen_note = "multiple owners"
+            
+
+        note_query = f"UPDATE {self.table_name} SET ethgen_note = '{self.escape(ethgen_note)}' WHERE MTAuID = '{mta_uid}'"
+        multiple_owners_query = f"UPDATE {self.table_name} SET multiple_owners = '{self.escape(multiple_executives)}' WHERE MTAuID = '{mta_uid}'"
         queries.append(note_query)
+        queries.append(multiple_owners_query)
+
+
         print(f"   >> Generated ethgen_note query")
         
         print(f"   >> Processing ethnicity...")

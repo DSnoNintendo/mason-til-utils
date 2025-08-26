@@ -31,6 +31,7 @@ class LinkedInEthGenResponse:
     multiple_executives: bool = False # if true, there are multiple executives
     multiple_ethnicities: bool = False # if true ethnicity is non-minority
     multiple_genders: bool = False # if true gender is Z
+    is_family_owned: bool = False # if true, the company is family owned
     is_publicly_traded: bool = False # if true, the company is publicly traded
 
 
@@ -83,7 +84,29 @@ class LinkedInEthGenService:
     def stop(self):
         if self.browser:
             self.browser.close()
+
+    def is_family_owned(self, executives: List[ServiceExecutiveInfo]) -> bool:
+        # check if family owned by finding multiple executives with the same last name
+        last_names = []
+        for exec in executives:
+            # Extract last name (assuming it's the last word in the name)
+            name_parts = exec.name.strip().split()
+            if name_parts:
+                last_names.append(name_parts[-1])
         
+        # Count occurrences of each last name using dictionary
+        last_name_counts = {}
+        for last_name in last_names:
+            last_name_counts[last_name] = last_name_counts.get(last_name, 0) + 1
+        
+        # Check if any last name appears more than once
+        for last_name, count in last_name_counts.items():
+            if count > 1:
+                print(f"   Multiple executives ({count}) share the last name '{last_name}' - marking as family owned")
+                return True
+        
+        print(f"   No shared last names among executives - not family owned")
+        return False
     
     def call(self, company_name: str, city: str, state: str, address: str) -> LinkedInEthGenResponse | None:
         print(f"========== LinkedIn EthGen Service Call Started ==========")
@@ -201,11 +224,15 @@ class LinkedInEthGenService:
         # if multiple executives, check if ethnicity and gender are the same
         if request.response.multiple_executives:
             print(f"Processing multiple executives for consistency...")
-            
-            # Check ethnicity consistency
+
+            # check if ethnicity is the same
             ethnicities = [exec.ethnicity for exec in request.response.executives if exec.ethnicity]
             unique_ethnicities = set(ethnicities)
-            
+
+            # check if family owned
+            if self.is_family_owned(request.response.executives):
+                request.response.is_family_owned = True
+                
             if len(unique_ethnicities) > 1:
                 request.response.multiple_ethnicities = True
                 request.response.ethnicity = "Non-Minority"
@@ -245,6 +272,7 @@ class LinkedInEthGenService:
         print(f"Multiple Executives: {request.response.multiple_executives}")
         print(f"Multiple Ethnicities: {request.response.multiple_ethnicities}")
         print(f"Multiple Genders: {request.response.multiple_genders}")
+        print(f"Family Owned: {request.response.is_family_owned}")
         print(f"Final Ethnicity: {request.response.ethnicity}")
         print(f"Final Gender: {request.response.gender}")
         
