@@ -28,12 +28,14 @@ class ChatGPTEthGenAPI(ThreadedChatGPTAPI):
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')
         
-    def call(self, image_path: str, name: str | None = None, parse_url: bool = False) -> EthGenResponse | None:
+    def call(self, image_path: str, name: str | None = None, parse_url: bool = True) -> EthGenResponse | None:
         """
         Analyze an image to determine the likely geographic origin of the person shown.
         
         Args:
             image_path: Path to the image file
+            name: Name of the person in the image
+            parse_url: Whether the image_path is a url or a local file path
             
         Returns:
             EthGenResponse or None if analysis fails
