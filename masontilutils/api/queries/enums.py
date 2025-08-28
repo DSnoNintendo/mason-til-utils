@@ -23,7 +23,7 @@ class Ethnicity(Enum):
     WEST_ASIA = "M"
     EUROPE = "C"
     AFRICA = "B"
-    NORTH_AMERICA = "C"
+    NORTH_AMERICA = "H"
     SOUTH_AMERICA = "H"
     AUSTRALIA = "C"
     ANTARCTICA = "C"
