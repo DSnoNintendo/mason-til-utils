@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mason-til-utils"
-version = "2.1.11"
+version = "2.1.12"
 description = "utilities for development of applications for Mason Tilman & Associates"
 authors = ["Daryl Stronge"]
 readme = "README.md"
@@ -16,6 +16,7 @@ fuzzywuzzy = "^0.18.0"
 pytest = "^8.4.1"
 linkedin-selenium = {git = "https://github.com/DSnoNintendo/LinkedInSelenium"}
 seleniumbase = "^4.41.1"
+requests = "*"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
